@@ -9,7 +9,8 @@
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&display=swap">
 <style>
 /* Layout: one-screen party app, phone-first. Top: score strip. Middle: stage (covered player). Bottom: one giant action. */
 :root{
@@ -21,8 +22,9 @@
   --buzz:#e8402f;       /* STOP */
   --teamA:#f2b134;      /* tim 1 */
   --teamB:#3fc1b5;      /* tim 2 */
-  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;   /* naslovi, rezultat, gumbi */
-  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* Atkinson Hyperlegible Next (Braille Institute, SIL OFL): slova koja se lako zamijene (Il1, O0, rn/m) namjerno su različita */
+  --display:"Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;   /* naslovi, rezultat, gumbi */
+  --body:"Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -222,7 +224,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 22:00";
+const APP_VERSION = "2026-10-10 22:20";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
