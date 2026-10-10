@@ -95,6 +95,7 @@ h1 span{color:var(--buzz)}
 .spacer{flex:1}
 .list td.sec{font:16px var(--display);color:var(--buzz);padding-top:16px;background:var(--night)}
 .paste{display:block;width:100%;margin-top:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--cream);font:14px var(--body)}
+.ver{color:var(--teamA);font-weight:600}
 .mini{background:none;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
 
 /* izlaz */
@@ -203,7 +204,8 @@ const LISTS = {
     {a:"Ace of Base", t:"The Sign", y:1994, id:"iqu132vTl5Y", s:SRC_US, ch:"Ace of Base"},
     {a:"Shania Twain", t:"You're Still the One", y:1998, id:"KNZH-emehxA", s:SRC_US, ch:"ShaniaTwainVEVO"},
     {a:"Sinéad O'Connor", t:"Nothing Compares 2 U", y:1990, id:"0-EF60neguk", s:SRC_US, ch:"SineadOConnorVEVO"},
-    {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_US, ch:"LosDelRioVEVO"}
+    {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_US, ch:"LosDelRioVEVO"},
+    {a:"Céline Dion", t:"My Heart Will Go On", y:1998, id:"WNIPqafd4As", s:SRC_UK, ch:"CelineDionVEVO", v:"live 2007"}
   ]},
   "top100": { name: "Top 100 svih vremena", note: "Billboard, svi žanrovi", songs: [
     {a:"The Weeknd", t:"Blinding Lights", y:2019, id:"4NRXx6U8ABQ", s:SRC_GOAT+" #1", ch:"TheWeekndVEVO"},
@@ -269,9 +271,9 @@ const LISTS = {
     {a:"Led Zeppelin", t:"Whole Lotta Love", y:1969, id:"HQmmM_qwG4k", s:SRC_VH1+" #3", ch:"Led Zeppelin"},
     {a:"Black Sabbath", t:"Paranoid", y:1970, id:"0qanF-91aJo", s:SRC_VH1+" #4", ch:"Black Sabbath"},
     {a:"Metallica", t:"Enter Sandman", y:1991, id:"CD-E-LDc384", s:SRC_VH1+" #5", ch:"Metallica"},
-    {a:"The Who", t:"Won't Get Fooled Again", y:1971, s:SRC_VH1+" #6"},
+    {a:"The Who", t:"Won't Get Fooled Again", y:1971, id:"UDfAdHBtK_Q", s:SRC_VH1+" #6", ch:"TheWhoVEVO", v:"live 1978"},
     {a:"Nirvana", t:"Smells Like Teen Spirit", y:1991, id:"hTWKbfoikeg", s:SRC_VH1+" #7", ch:"NirvanaVEVO"},
-    {a:"Aerosmith", t:"Walk This Way", y:1975, s:SRC_VH1+" #8"},
+    {a:"Aerosmith (i Run-DMC)", t:"Walk This Way", y:1975, id:"4B_UYYPb-Gk", s:SRC_VH1+" #8", ch:"RUNDMCVEVO", v:"verzija s Run-DMC (1986)"},
     {a:"Motörhead", t:"Ace of Spades", y:1980, id:"3mbvWn1EY6g", s:SRC_VH1+" #10", ch:"Motörhead Official"},
     {a:"Deep Purple", t:"Smoke on the Water", y:1972, s:SRC_VH1+" #11"},
     {a:"Judas Priest", t:"Breaking the Law", y:1980, id:"L397TWLwrUU", s:SRC_VH1+" #12", ch:"JudasPriestVEVO"},
@@ -281,11 +283,11 @@ const LISTS = {
     {a:"Scorpions", t:"Rock You Like a Hurricane", y:1984, s:SRC_VH1+" #18"},
     {a:"Rush", t:"Tom Sawyer", y:1981, id:"auLBLk4ibAk", s:SRC_VH1+" #19", ch:"RushVEVO"},
     {a:"Bon Jovi", t:"You Give Love a Bad Name", y:1986, id:"KrZHPOeOxQQ", s:SRC_VH1+" #20", ch:"BonJoviVEVO"},
-    {a:"Led Zeppelin", t:"Kashmir", y:1975, s:SRC_VH1+" #21"},
+    {a:"Led Zeppelin", t:"Kashmir", y:1975, id:"tzVJPgCn-Z8", s:SRC_VH1+" #21", ch:"Led Zeppelin - Topic"},
     {a:"Jimi Hendrix Experience", t:"Hey Joe", y:1966, s:SRC_VH1+" #22"},
     {a:"Ozzy Osbourne", t:"Crazy Train", y:1980, id:"tMDFv5m18Pw", s:SRC_VH1+" #23", ch:"OzzyOsbourneVEVO"},
     {a:"Ramones", t:"Blitzkrieg Bop", y:1976, s:SRC_VH1+" #25"},
-    {a:"Lynyrd Skynyrd", t:"Free Bird", y:1973, s:SRC_VH1+" #26"},
+    {a:"Lynyrd Skynyrd", t:"Free Bird", y:1973, id:"QxIWDmmqZzY", s:SRC_VH1+" #26", ch:"Rock Vault", v:"live 1977"},
     {a:"Foo Fighters", t:"Everlong", y:1997, id:"eBG7P-K-r1Y", s:SRC_VH1+" #28", ch:"foofightersVEVO"},
     {a:"Pearl Jam", t:"Even Flow", y:1991, id:"CxKWTzr-k6s", s:SRC_VH1+" #30", ch:"PearljamVEVO"},
     {a:"Green Day", t:"Basket Case", y:1994, id:"NUTGr5t3MoY", s:SRC_VH1+" #33", ch:"Green Day"},
@@ -294,13 +296,13 @@ const LISTS = {
     {a:"Cream", t:"Sunshine of Your Love", y:1967, s:SRC_VH1+" #44"},
     {a:"Korn", t:"Freak on a Leash", y:1998, id:"jRGrNDV2mKc", s:SRC_VH1+" #48", ch:"KornVEVO"},
     {a:"Red Hot Chili Peppers", t:"Give It Away", y:1991, id:"Mr_uHJPUlO8", s:SRC_VH1+" #50", ch:"Red Hot Chili Peppers"},
-    {a:"Steppenwolf", t:"Born to Be Wild", y:1968, s:SRC_VH1+" #53"},
-    {a:"Faith No More", t:"Epic", y:1989, s:SRC_VH1+" #54"},
-    {a:"Blue Öyster Cult", t:"(Don't Fear) The Reaper", y:1976, s:SRC_VH1+" #55"},
+    {a:"Steppenwolf", t:"Born to Be Wild", y:1968, id:"rMbATaj7Il8", s:SRC_VH1+" #53", ch:"Max Shkiv", v:"fan upload"},
+    {a:"Faith No More", t:"Epic", y:1989, id:"ZG_k5CSYKhg", s:SRC_VH1+" #54", ch:"UPROXX Indie Mixtape", v:"neslužbeni kanal"},
+    {a:"Blue Öyster Cult", t:"(Don't Fear) The Reaper", y:1976, id:"Dy4HA3vUv2c", s:SRC_VH1+" #55", ch:"BlueOysterCultVEVO"},
     {a:"The Kinks", t:"You Really Got Me", y:1964, s:SRC_VH1+" #57"},
     {a:"Survivor", t:"Eye of the Tiger", y:1982, id:"btPJPFnesV4", s:SRC_VH1+" #63", ch:"SurvivorVEVO"},
     {a:"Europe", t:"The Final Countdown", y:1986, id:"9jK-NcRmVcw", s:SRC_VH1+" #66", ch:"EuropeVEVO"},
-    {a:"Living Colour", t:"Cult of Personality", y:1988, s:SRC_VH1+" #69"},
+    {a:"Living Colour", t:"Cult of Personality", y:1988, id:"7xxgRUyzgs0", s:SRC_VH1+" #69", ch:"LivingColourVEVO"},
     {a:"The White Stripes", t:"Seven Nation Army", y:2003, id:"0J2QdDbelmY", s:SRC_VH1+" #75", ch:"The White Stripes"},
     {a:"Soundgarden", t:"Black Hole Sun", y:1994, id:"3mbBbFH9fAg", s:SRC_VH1+" #77", ch:"SoundgardenVEVO"},
     {a:"Journey", t:"Any Way You Want It", y:1980, id:"atxUuldUcfI", s:SRC_VH1+" #80", ch:"journeyVEVO"},
@@ -367,7 +369,7 @@ function renderReview(){
     l.songs.forEach((s,i) => {
       const id = idOf(s), q = encodeURIComponent(s.a+" "+s.t);
       const linkCell = id
-        ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||"tvoj link"}</a>${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
+        ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||"tvoj link"}</a>${s.v?` · <b class="ver">${s.v}</b>`:""}${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
         : `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
            <input class="paste" id="ln_${lk}_${i}" data-set="${lk}:${i}" placeholder="Zalijepi link videa" inputmode="url">`;
       rows.push(`<tr><td>${id?`<input type="checkbox" id="rv_${lk}_${i}" data-id="${id}" ${excluded.has(id)?'':'checked'} aria-label="Uključi ${s.t}">`:''}</td>
@@ -454,7 +456,7 @@ function nextSong(){
 }
 function revealAnswer(){
   $("aArtist").textContent=current.a; $("aTitle").textContent=current.t;
-  $("aMeta").textContent=`${current.y} · ${current.s}`;
+  $("aMeta").textContent=`${current.y}${current.v?" · "+current.v:""} · ${current.s}`;
   setUI("revealed");
 }
 function award(team){
