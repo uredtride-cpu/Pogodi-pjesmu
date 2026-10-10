@@ -219,7 +219,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 19:50";
+const APP_VERSION = "2026-10-10 19:55";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -349,10 +349,13 @@ $("leaveBtn").onclick = async () => {
 /* ---------- RUNDE ---------- */
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a }
 let played = new Set(store.get("pp_played",[]));
+const songKey = s => { const n = x => (x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  return "k:" + n(s.t.replace(/\(.*?\)/g,"")) + "|" + n(s.a).split(" ").filter(w => w!=="the")[0]; };
 function buildDeck(){
   const seen = new Set(played);
   deck = shuffle(selected.flatMap(k => playable(LISTS[k]))
-    .filter(s => { const id=idOf(s); if(seen.has(id)) return false; seen.add(id); return true; })
+    // ista pjesma iz više lista ide u špil samo jednom (po videu i po izvođaču + nazivu)
+    .filter(s => { const id=idOf(s), k=songKey(s); if(seen.has(id) || seen.has(k)) return false; seen.add(id); seen.add(k); return true; })
     .map(s => { const m = eff(s); return {...s, id: m.id, ch: m.ch, v: m.v}; }));
 }
 function saveScore(){
