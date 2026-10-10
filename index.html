@@ -143,6 +143,7 @@ h1 span{color:var(--buzz)}
   <!-- REVIEW -->
   <section class="screen" id="reviewScreen" hidden>
     <h1 style="font-size:34px">Pregled</h1>
+    <div class="auto" id="summary"></div>
     <p class="lead">Isključi pjesmu kvačicom ako je kriva verzija. Klikni link da je poslušaš. Odabir se pamti na ovom mobitelu.</p>
     <div class="auto">
       <label for="apiKey">YouTube API ključ <small>(sprema se samo na ovom mobitelu)</small></label>
@@ -529,7 +530,11 @@ let excluded = new Set(store.get("pp_excluded",[]));
 let links = store.get("pp_links",{});
 let linkMeta = store.get("pp_linkmeta",{});
 const metaOf = s => linkMeta[keyOf(s)] || {};
-const idOf = s => s.id || links[keyOf(s)] || null;
+/* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
+   Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
+const APP_VERSION = "2026-10-10 18:10";
+let blocked = store.get("pp_blocked",{});
+const idOf = s => { const l = links[keyOf(s)]; if (l && !blocked[l]) return l; if (s.id && !blocked[s.id]) return s.id; return null; };
 const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
 function parseYT(v){
   v = (v||"").trim();
@@ -556,7 +561,22 @@ function renderPick(){
     store.set("pp_lists",selected);
   });
 }
+function renderSummary(){
+  const all = new Map(); Object.values(LISTS).forEach(l => l.songs.forEach(s => all.set(keyOf(s), s)));
+  const songs = [...all.values()];
+  const ok = songs.filter(s => idOf(s) && !excluded.has(idOf(s))).length;
+  const off = songs.filter(s => idOf(s) && excluded.has(idOf(s))).length;
+  const blk = songs.filter(s => !idOf(s) && ((s.id && blocked[s.id]) || blocked[links[keyOf(s)]])).length;
+  const none = songs.length - ok - off - blk;
+  $("summary").innerHTML = `<b>${songs.length} različitih pjesama u svim listama</b>
+    <span class="hint">${ok} spremno za igru · ${off} isključio si ti · ${blk} YouTube ne pušta na mobitelu (traže zamjenu) · ${none} bez linka</span>
+    ${(off||blk)?`<button class="ghost" id="restoreBtn" type="button">Vrati sve isključene i blokirane (${off+blk})</button>`:""}
+    <span class="src">Verzija ${APP_VERSION}</span>`;
+  const r = $("restoreBtn");
+  if (r) r.onclick = () => { excluded = new Set(); blocked = {}; store.set("pp_excluded",[]); store.set("pp_blocked",{}); renderReview(); renderPick(); updateAutoBtn(); };
+}
 function renderReview(){
+  renderSummary();
   const rows = [];
   for (const [lk,l] of Object.entries(LISTS)) {
     rows.push(`<tr><td colspan="2" class="sec">${l.name}</td></tr>`);
@@ -564,7 +584,7 @@ function renderReview(){
       const id = idOf(s), q = encodeURIComponent(s.a+" "+s.t);
       const linkCell = id
         ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||metaOf(s).ch||"tvoj link"}</a>${(s.v||metaOf(s).v)?` · <b class="ver">${s.v||metaOf(s).v}</b>`:""}${!s.id&&metaOf(s).auto?` · <span class="src">auto</span>`:""}${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
-        : `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
+        : `${(s.id && blocked[s.id]) ? `<span class="ver">YouTube ne dopušta ovaj video u igri, treba zamjena</span><br>` : ""}<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
            <input class="paste" id="ln_${lk}_${i}" data-set="${lk}:${i}" placeholder="Zalijepi link videa" inputmode="url">`;
       rows.push(`<tr><td>${id?`<input type="checkbox" id="rv_${lk}_${i}" data-id="${id}" ${excluded.has(id)?'':'checked'} aria-label="Uključi ${s.t}">`:''}</td>
         <td><b>${s.a}</b> – ${s.t} (${s.y})<br>${linkCell}<br><span class="src">${s.s}</span></td></tr>`);
@@ -616,6 +636,7 @@ function pick(song, items){
     if (/official/i.test(title)) sc += 2;
     if (nt.includes(main) || nc.includes(main)) sc += 2;
     if (LIVE.test(title)){ sc -= 6; v = "live"; }
+    if (blocked[it.id.videoId]) continue;
     if (!best || sc > best.sc) best = {id: it.id.videoId, ch, v, sc, title};
   }
   return best;
@@ -783,14 +804,14 @@ $("newGameBtn").onclick = () => beginGame(true);
 $("continueBtn").onclick = () => beginGame(false);
 
 /* ---------- YOUTUBE ---------- */
-let seeked = false, errStreak = 0, loadTimer = null;
+let seeked = false, errStreak = 0, loadTimer = null, everPlayed = false;
 window.onYouTubeIframeAPIReady = () => {
   player = new YT.Player("player", {
     playerVars:{playsinline:1, controls:0, disablekb:1, rel:0, modestbranding:1, fs:0, iv_load_policy:3},
     events:{
       onReady: () => { ready = true; if(!$("gameScreen").hidden && !current) nextSong(); },
       onStateChange: e => {
-        if (e.data===YT.PlayerState.PLAYING) errStreak = 0;
+        if (e.data===YT.PlayerState.PLAYING){ errStreak = 0; everPlayed = true; }
         // STOP je pritisnut dok se pjesma još učitavala ili premotavala: drži je zaustavljenom
         if (e.data===YT.PlayerState.PLAYING && state==="stopped"){ player.pauseVideo(); return; }
         if (e.data===YT.PlayerState.PLAYING && state==="loading"){
@@ -807,9 +828,9 @@ window.onYouTubeIframeAPIReady = () => {
       // 100 = video ne postoji, 101/150 = vlasnik zabranio ugradnju, 2/5 = greška -> preskoči sam
       onError: e => {
         seeked = false; errStreak++;
-        if (errStreak >= 3){ setUI("empty"); $("status").textContent="YouTube ne pušta pjesme";
+        if (errStreak >= 3 && !everPlayed){ setUI("empty"); $("status").textContent="YouTube ne pušta pjesme";
           $("hint").textContent="Stranica vjerojatno nije otvorena preko web adrese (https). Otvori je s GitHub Pagesa ili svog servera."; return; }
-        if (current && [100,101,150].includes(e.data)){ excluded.add(current.id); store.set("pp_excluded",[...excluded]); }
+        if (current && [100,101,150].includes(e.data)){ blocked[current.id] = {c:e.data, t:Date.now()}; store.set("pp_blocked",blocked); }
         nextSong();
       }
     }
