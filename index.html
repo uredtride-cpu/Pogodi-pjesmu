@@ -221,7 +221,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 20:30";
+const APP_VERSION = "2026-10-10 21:50";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -289,7 +289,7 @@ function renderReview(){
         : `${m.hadOne ? `<span class="ver">YouTube ne dopušta ovaj video u igri, GitHub traži zamjenu</span><br>` : `<span class="src">GitHub još traži link</span><br>`}<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
            <input class="paste" id="ln_${lk}_${i}" data-set="${lk}:${i}" placeholder="Zalijepi link videa" inputmode="url">`;
       rows.push(`<tr><td>${id?`<input type="checkbox" id="rv_${lk}_${i}" data-id="${id}" ${excluded.has(id)?'':'checked'} aria-label="Uključi ${s.t}">`:''}</td>
-        <td><b>${s.a}</b> – ${s.t} (${s.y})<br>${linkCell}<br><span class="src">${s.s}</span></td></tr>`);
+        <td><b>${s.a}</b> – ${s.t}${s.y?` (${s.y})`:""}<br>${linkCell}<br><span class="src">${s.s}</span></td></tr>`);
     });
   }
   $("reviewBody").innerHTML = rows.join("");
@@ -408,7 +408,7 @@ function nextSong(){
 }
 function revealAnswer(){
   $("aArtist").textContent=current.a; $("aTitle").textContent=current.t;
-  $("aMeta").textContent=`${current.y}${current.v?" · "+current.v:""} · ${current.s}`;
+  $("aMeta").textContent=[current.y, current.v, current.s].filter(Boolean).join(" · ");
   setUI("revealed");
 }
 function award(team){
