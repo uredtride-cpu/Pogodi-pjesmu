@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&family=Barlow:wght@400;600;700&display=swap">
 <style>
 /* Layout: one-screen party app, phone-first. Top: score strip. Middle: stage (covered player). Bottom: one giant action. */
 :root{
@@ -21,8 +21,8 @@
   --buzz:#e8402f;       /* STOP */
   --teamA:#f2b134;      /* tim 1 */
   --teamB:#3fc1b5;      /* tim 2 */
-  --display:"Bowlby One","Arial Black",Impact,sans-serif;
-  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;   /* naslovi, rezultat, gumbi */
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -41,10 +41,10 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 .team.b{text-align:right}
 .team input{background:transparent;border:0;color:var(--muted);font:600 13px var(--body);letter-spacing:.06em;text-transform:uppercase;width:100%;padding:0}
 .team.b input{text-align:right}
-.team .pts{font:44px/1 var(--display);font-variant-numeric:tabular-nums}
+.team .pts{font:800 44px/1 var(--display);font-variant-numeric:tabular-nums}
 .team.a .pts{color:var(--teamA)} .team.b .pts{color:var(--teamB)}
 .round{font:600 12px var(--body);color:var(--muted);text-align:center;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
-.round b{display:block;font:22px var(--display);color:var(--cream);letter-spacing:0}
+.round b{display:block;font:800 22px var(--display);color:var(--cream);letter-spacing:0}
 
 /* stage */
 .stage{position:relative;flex:1;min-height:220px;border-radius:20px;overflow:hidden;background:var(--panel)}
@@ -64,25 +64,26 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 
 .answer{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(transparent,rgba(10,8,22,.92) 35%)}
 .answer .artist{font:600 15px var(--body);color:var(--muted)}
-.answer .title{font:26px/1.1 var(--display);text-wrap:balance}
+.answer .title{font:800 26px/1.1 var(--display);text-wrap:balance}
 .answer .meta{font-size:12px;color:var(--muted);margin-top:4px}
 
 /* controls */
 .controls{display:flex;flex-direction:column;gap:10px}
-.smash{height:min(30vh,170px);border-radius:24px;background:var(--buzz);color:#fff;font:clamp(40px,12vw,64px) var(--display);
+.smash{height:min(30vh,170px);border-radius:24px;background:var(--buzz);color:#fff;font:800 clamp(40px,12vw,64px) var(--display);
   box-shadow:0 8px 0 #9e2418;transition:transform .06s,box-shadow .06s;letter-spacing:.02em}
 .smash:active{transform:translateY(6px);box-shadow:0 2px 0 #9e2418}
-.big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:24px var(--display);box-shadow:0 6px 0 #c9bfa8}
+.big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:800 24px var(--display);box-shadow:0 6px 0 #c9bfa8}
 .big:active{transform:translateY(4px);box-shadow:0 2px 0 #c9bfa8}
 .award{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.award button{height:72px;border-radius:18px;font:20px var(--display);color:var(--night)}
+.award button{height:72px;border-radius:18px;font:800 20px var(--display);color:var(--night)}
 .award .a{background:var(--teamA)} .award .b{background:var(--teamB)}
 .row{display:flex;gap:10px}
-.ghost{flex:1;height:46px;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted);font-weight:600}
+.row .ghost{flex:1}   /* samo u retku dijele širinu; inače zadrže punu visinu */
+.ghost{flex:none;height:46px;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted);font-weight:600}
 
 /* start + list screens */
 .screen{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
-h1{font:clamp(40px,13vw,58px)/.95 var(--display);margin:8px 0 0;text-wrap:balance}
+h1{font:800 clamp(42px,13vw,60px)/1 var(--display);letter-spacing:-.01em;margin:8px 0 0;text-wrap:balance}
 h1 span{color:var(--buzz)}
 .lead{color:var(--muted);margin:0;line-height:1.5;max-width:42ch}
 #banBtn{height:44px}
@@ -90,7 +91,7 @@ h1 span{color:var(--buzz)}
 .teams label{background:var(--panel);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .teams span{font:600 12px var(--body);letter-spacing:.08em;text-transform:uppercase}
 .teams label:first-child span{color:var(--teamA)} .teams label:last-child span{color:var(--teamB)}
-.teams input{background:transparent;border:0;border-bottom:2px solid var(--line);color:var(--cream);font:20px var(--display);padding:2px 0;width:100%;min-width:0}
+.teams input{background:transparent;border:0;border-bottom:2px solid var(--line);color:var(--cream);font:800 20px var(--display);padding:2px 0;width:100%;min-width:0}
 .teams input:focus{outline:none;border-color:var(--cream)}
 .pick{display:flex;flex-direction:column;gap:8px}
 .pick label{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border-radius:14px;padding:14px 16px;font-weight:800}
@@ -104,7 +105,7 @@ h1 span{color:var(--buzz)}
 .list a{color:var(--teamB)}
 .list .src{color:var(--muted);font-size:12px}
 .spacer{flex:1}
-.list td.sec{font:16px var(--display);color:var(--buzz);padding-top:16px;background:var(--night)}
+.list td.sec{font:800 16px var(--display);color:var(--buzz);padding-top:16px;background:var(--night)}
 .paste{display:block;width:100%;margin-top:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--cream);font:14px var(--body)}
 .ver{color:var(--teamA);font-weight:600}
 .auto{background:var(--panel);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
@@ -117,7 +118,7 @@ h1 span{color:var(--buzz)}
 /* izlaz */
 .veil{position:fixed;inset:0;background:rgba(10,8,22,.85);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
 .dialog{background:var(--panel);border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:360px;text-align:center}
-.dialog h2{font:26px var(--display);margin:0}
+.dialog h2{font:800 26px var(--display);margin:0}
 .dialog p{margin:0;color:var(--muted)}
 </style>
 </head>
@@ -221,7 +222,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 21:50";
+const APP_VERSION = "2026-10-10 22:00";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
