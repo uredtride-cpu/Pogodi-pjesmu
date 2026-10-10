@@ -12,6 +12,7 @@ Igra: https://uredtride-cpu.github.io/Pogodi-pjesmu/
 | Top 100 svih vremena | Billboard Greatest of All Time Hot 100 (2021) |
 | Rock i metal | VH1 100 Greatest Hard Rock Songs (2009) |
 | Novi val (HR) | Rock Express Top 100 YU rock pjesama |
+| Pop do 2000 | Billboard Top 20 po desetljeću (60-e–90-e) + UK Top 20 90-ih + Billboard svih vremena |
 
 Ugrađeni linkovi su provjereni preko YouTube oEmbed servisa (naslov + kanal). Prednost imaju službeni kanali i studijske verzije. Live ili fan verzija je označena i koristi se samo kad službene nema.
 
