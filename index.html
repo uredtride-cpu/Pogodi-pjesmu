@@ -87,6 +87,11 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 
 /* start + list screens */
 .screen{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
+.big,.smash{flex-shrink:0}            /* gumbi zadane visine se nikad ne gnječe kad sadržaja ima više nego ekrana */
+#startScreen{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+#startScreen > *{flex-shrink:0}
+.dock{position:sticky;bottom:0;display:flex;flex-direction:column;padding:20px 0 8px;margin-top:-20px;
+  background:linear-gradient(transparent,var(--night) 20px)}
 h1{font:800 clamp(42px,13vw,60px)/1 var(--display);letter-spacing:-.01em;margin:8px 0 0;text-wrap:balance}
 h1 span{color:var(--buzz)}
 .lead{color:var(--muted);margin:0;line-height:1.5;max-width:42ch}
@@ -144,7 +149,8 @@ h1 span{color:var(--buzz)}
     <button class="ghost" id="installBtn" type="button" hidden>Dodaj na početni zaslon</button>
     <div class="spacer"></div>
     <small class="src" id="verLine" style="text-align:center"></small>
-    <button class="big" id="startBtn" type="button">Kreni</button>
+    <!-- Kreni je uvijek zalijepljen za dno ekrana; liste se pomiču iznad njega -->
+    <div class="dock"><button class="big" id="startBtn" type="button">Kreni</button></div>
   </section>
 
   <!-- REVIEW -->
@@ -236,7 +242,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 22:35";
+const APP_VERSION = "2026-10-10 22:45";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
