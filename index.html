@@ -137,6 +137,7 @@ h1 span{color:var(--buzz)}
     </div>
     <button class="ghost" id="installBtn" type="button" hidden>Dodaj na početni zaslon</button>
     <div class="spacer"></div>
+    <small class="src" id="verLine" style="text-align:center"></small>
     <button class="big" id="startBtn" type="button">Kreni</button>
   </section>
 
@@ -532,7 +533,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 const metaOf = s => linkMeta[keyOf(s)] || {};
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 18:45";
+const APP_VERSION = "2026-10-10 18:50";
 let blocked = store.get("pp_blocked",{});
 const idOf = s => { const l = links[keyOf(s)]; if (l && !blocked[l]) return l; if (s.id && !blocked[s.id]) return s.id; return null; };
 const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
@@ -713,6 +714,7 @@ $("leaveBtn").onclick = async () => {
   try{ await wakeLock?.release() }catch(e){} wakeLock = null;
   try{ if(document.fullscreenElement) await document.exitFullscreen() }catch(e){}
   renderPick(); show("startScreen");
+  if (pendingReload) location.reload();
 };
 
 /* ---------- RUNDE ---------- */
@@ -849,9 +851,20 @@ window.onYouTubeIframeAPIReady = () => {
   });
 };
 renderPick();
+$("verLine").textContent = "Verzija " + APP_VERSION;
 
 /* ---------- INSTALACIJA (ikona na početnom zaslonu) ---------- */
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+/* Nova verzija igre: service worker je preuzme i stranica se sama osvježi, ali nikad usred igre */
+if ("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(r => r.update()).catch(() => {});
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloading) return;
+    if (inGame()){ pendingReload = true; return; }
+    reloading = true; location.reload();
+  });
+}
+let pendingReload = false;
 let installPrompt = null;
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; $("installBtn").hidden = false; });
 $("installBtn").onclick = async () => {
