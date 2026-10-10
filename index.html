@@ -368,6 +368,18 @@ const keyOf = s => s.a+"|"+s.t;
  ["The Archies","Sugar, Sugar",1969,90],["Marvin Gaye","I Heard It Through the Grapevine",1968,93],["Donna Summer","Hot Stuff",1979,96],
  ["Steve Miller Band","Abracadabra",1982,99],["Carly Simon","You're So Vain",1972,100]
 ].forEach(([a,t,y,r]) => LISTS.top100.songs.push({a,t,y,s:SRC_GOAT+" #"+r}));
+/* Pronađeno naknadno (provjereno oEmbedom) */
+const FOUND = {
+  "Bette Davis Eyes":{id:"EPOIS5taqA8",ch:"KimCarnesVEVO"},
+  "Flashdance... What a Feeling":{id:"ILWSp0m9G2U",ch:"UnidiscMusic"},
+  "Night Fever":{id:"SkypZuY6ZvA",ch:"BeeGeesVEVO"},
+  "Mood":{id:"GrAchTdepsU",ch:"24KGoldnVEVO"},
+  "Say Say Say":{id:"aLEhh_XpJ-0",ch:"Giraldi Media"},
+  "I Want to Hold Your Hand":{id:"jenWdylTtzs",ch:"TheBeatlesVEVO",v:"live, Ed Sullivan Show"},
+  "Whoomp! (There It Is)":{id:"Z-FPimCmbX8",ch:"El Machin",v:"fan upload"},
+  "I Heard It Through the Grapevine":{id:"hajBdDM2qdg",ch:"Luke Gibbons",v:"fan upload"}
+};
+LISTS.top100.songs.forEach(s => { if (!s.id && FOUND[s.t]) Object.assign(s, FOUND[s.t]); });
 LISTS.top100.songs.sort((x,y) => +x.s.split("#")[1] - +y.s.split("#")[1]);
 
 /* ---------- STANJE ---------- */
@@ -443,7 +455,7 @@ $("reviewBtn").onclick = () => { renderReview(); updateAutoBtn(); show("reviewSc
    Redoslijed izbora: "Izvođač - Topic" (službeni studijski zvuk) > VEVO/službeni kanal > "official" u naslovu > ostalo; live tek ako nema ničeg drugog. */
 let apiKey = store.get("pp_apikey","");
 $("apiKey").value = apiKey;
-$("saveKey").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); $("autoStatus").textContent = apiKey ? "Ključ spremljen na ovom mobitelu." : "Ključ obrisan."; };
+$("saveKey").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); $("autoStatus").textContent = apiKey ? "Ključ spremljen. Tražim linkove…" : "Ključ obrisan."; if (apiKey) autoFill(false); };
 const missingSongs = () => Object.values(LISTS).flatMap(l => l.songs).filter(s => !idOf(s));
 function updateAutoBtn(){ const n = missingSongs().length; $("autoBtn").textContent = n ? `Automatski pronađi linkove (${n})` : "Svi linkovi su popunjeni"; $("autoBtn").disabled = !n; }
 const norm = x => (x||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/đ/g,"d").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
@@ -470,10 +482,13 @@ function pick(song, items){
   }
   return best;
 }
-$("autoBtn").onclick = async () => {
-  apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey);
+let tried = store.get("pp_tried",{});
+const WEEK = 7*24*3600*1000;
+async function autoFill(silent){
   if (!apiKey){ $("autoStatus").textContent = "Prvo upiši YouTube API ključ."; return; }
-  const todo = missingSongs(); let found = 0, none = [];
+  const todo = missingSongs().filter(s => !silent || !(tried[keyOf(s)] > Date.now()-WEEK));
+  if (!todo.length) return;
+  let found = 0, none = [];
   $("autoBtn").disabled = true;
   for (let i=0; i<todo.length; i++){
     const s = todo[i];
@@ -496,11 +511,15 @@ $("autoBtn").onclick = async () => {
     if (best){
       const k = keyOf(s); links[k] = best.id; linkMeta[k] = {ch: best.ch, v: best.v, auto: 1}; found++;
       store.set("pp_links",links); store.set("pp_linkmeta",linkMeta);
-    } else none.push(s.t);
+    } else { none.push(s.t); tried[keyOf(s)] = Date.now(); store.set("pp_tried",tried); }
     if (i === todo.length-1) $("autoStatus").textContent = `Gotovo: pronađeno ${found} od ${todo.length}.` + (none.length ? ` Bez rezultata: ${none.join(", ")}.` : "") + " Provjeri ih na popisu.";
   }
   renderReview(); updateAutoBtn(); renderPick();
-};
+  $("autoBtn").disabled = !missingSongs().length;
+}
+$("autoBtn").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); autoFill(false); };
+// Ključ spremljen → pretraga se pokreće sama pri otvaranju igre, bez odobravanja
+if (apiKey) setTimeout(() => autoFill(true), 1500);
 $("backBtn").onclick = () => { renderPick(); show("startScreen"); };
 $("resetBtn").onclick = () => { score.a=0; score.b=0; score.round=1; saveScore(); $("resetBtn").textContent="Rezultat obrisan"; setTimeout(()=>$("resetBtn").textContent="Novi rezultat",1500); };
 /* ---------- ZAKLJUČAVANJE: puni zaslon, bez gašenja ekrana, tipka Natrag traži potvrdu ---------- */
