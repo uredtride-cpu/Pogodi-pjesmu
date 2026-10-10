@@ -93,6 +93,15 @@ h1 span{color:var(--buzz)}
 .list a{color:var(--teamB)}
 .list .src{color:var(--muted);font-size:12px}
 .spacer{flex:1}
+.list td.sec{font:16px var(--display);color:var(--buzz);padding-top:16px;background:var(--night)}
+.paste{display:block;width:100%;margin-top:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--cream);font:14px var(--body)}
+.mini{background:none;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
+
+/* izlaz */
+.veil{position:fixed;inset:0;background:rgba(10,8,22,.85);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.dialog{background:var(--panel);border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:360px;text-align:center}
+.dialog h2{font:26px var(--display);margin:0}
+.dialog p{margin:0;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -157,12 +166,23 @@ h1 span{color:var(--buzz)}
   </section>
 </div>
 
+<div class="veil" id="exitVeil" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+    <h2 id="exitTitle">Izaći iz igre?</h2>
+    <p>Rezultat ostaje spremljen.</p>
+    <button class="big" id="stayBtn" type="button">Ostani</button>
+    <button class="ghost" id="leaveBtn" type="button">Izađi u izbornik</button>
+  </div>
+</div>
+
 <script>
 /* ---------- PODACI ----------
    Svaki zapis: izvođač, naziv, godina, YouTube ID, izvor ljestvice, provjera.
    Provjera = YouTube oEmbed vratio naslov i službeni kanal (VEVO / izdavač / izvođač). */
 const SRC_UK = "Music Week / OCC: Top 20 najprodavanijih singlova 90-ih (UK)";
 const SRC_US = "Billboard: Top 20 Hot 100 hitova 90-ih (US)";
+const SRC_GOAT = "Billboard: Greatest of All Time Hot 100 (2021)";
+const SRC_RE = "Rock Express: Top 100 YU rock pjesama";
 const LISTS = {
   "90s": { name: "Hitovi 90-ih", note: "UK + US ljestvice desetljeća", songs: [
     {a:"Bryan Adams", t:"(Everything I Do) I Do It for You", y:1991, id:"Y0pdQU87dc8", s:SRC_UK, ch:"Bryan Adams"},
@@ -184,8 +204,82 @@ const LISTS = {
     {a:"Sinéad O'Connor", t:"Nothing Compares 2 U", y:1990, id:"0-EF60neguk", s:SRC_US, ch:"SineadOConnorVEVO"},
     {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_US, ch:"LosDelRioVEVO"}
   ]},
-  "novival": { name: "Novi val (HR)", note: "u pripremi", songs: [] }
+  "top100": { name: "Top 100 svih vremena", note: "Billboard, svi žanrovi", songs: [
+    {a:"The Weeknd", t:"Blinding Lights", y:2019, id:"4NRXx6U8ABQ", s:SRC_GOAT+" #1", ch:"TheWeekndVEVO"},
+    {a:"Santana ft. Rob Thomas", t:"Smooth", y:1999, id:"6Whgn_iE5uc", s:SRC_GOAT+" #3", ch:"SantanaVEVO"},
+    {a:"Mark Ronson ft. Bruno Mars", t:"Uptown Funk", y:2014, id:"OPf0YbXqDm0", s:SRC_GOAT+" #5", ch:"MarkRonsonVEVO"},
+    {a:"LMFAO", t:"Party Rock Anthem", y:2011, id:"KQ6zr6kCPj8", s:SRC_GOAT+" #7", ch:"LMFAOVEVO"},
+    {a:"The Black Eyed Peas", t:"I Gotta Feeling", y:2009, id:"uSD4vsh1zDA", s:SRC_GOAT+" #8", ch:"BlackEyedPeasVEVO"},
+    {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_GOAT+" #9", ch:"LosDelRioVEVO"},
+    {a:"Ed Sheeran", t:"Shape of You", y:2017, id:"JGwWNGJdvx8", s:SRC_GOAT+" #10", ch:"Ed Sheeran"},
+    {a:"Olivia Newton-John", t:"Physical", y:1981, id:"vWz9VN40nCA", s:SRC_GOAT+" #11", ch:"OliviaNewtonJohnVEVO"},
+    {a:"The Beatles", t:"Hey Jude", y:1968, id:"A_MjCqQoLLA", s:SRC_GOAT+" #13", ch:"TheBeatlesVEVO"},
+    {a:"The Chainsmokers ft. Halsey", t:"Closer", y:2016, id:"PT2_F-1esPk", s:SRC_GOAT+" #14", ch:"ChainsmokersVEVO"},
+    {a:"Mariah Carey", t:"We Belong Together", y:2005, id:"0habxsuXW4g", s:SRC_GOAT+" #15", ch:"MariahCareyVEVO"},
+    {a:"Toni Braxton", t:"Un-Break My Heart", y:1996, id:"p2Rch6WvPJE", s:SRC_GOAT+" #16", ch:"ToniBraxtonVEVO"},
+    {a:"Usher ft. Lil Jon & Ludacris", t:"Yeah!", y:2004, id:"GxBSyx85Kp8", s:SRC_GOAT+" #17", ch:"UsherVEVO"},
+    {a:"Post Malone", t:"Circles", y:2019, id:"wXhTHyIgQ_U", s:SRC_GOAT+" #19", ch:"PostMaloneVEVO"},
+    {a:"Bryan Adams", t:"(Everything I Do) I Do It for You", y:1991, id:"Y0pdQU87dc8", s:SRC_GOAT+" #23", ch:"Bryan Adams"},
+    {a:"Boyz II Men", t:"I'll Make Love to You", y:1994, id:"fV8vB1BB2qc", s:SRC_GOAT+" #24", ch:"BoyzIIMenVEVO"},
+    {a:"Bee Gees", t:"How Deep Is Your Love", y:1977, id:"XpqqjU7u5Yc", s:SRC_GOAT+" #27", ch:"beegees"},
+    {a:"Survivor", t:"Eye of the Tiger", y:1982, id:"btPJPFnesV4", s:SRC_GOAT+" #28", ch:"SurvivorVEVO"},
+    {a:"Rihanna ft. Calvin Harris", t:"We Found Love", y:2011, id:"tg00YEETFzg", s:SRC_GOAT+" #29", ch:"RihannaVEVO"},
+    {a:"Maroon 5 ft. Cardi B", t:"Girls Like You", y:2018, id:"aJOTlE1K90k", s:SRC_GOAT+" #30", ch:"Maroon5VEVO"},
+    {a:"Flo Rida ft. T-Pain", t:"Low", y:2008, id:"U2waT9TxPU0", s:SRC_GOAT+" #31", ch:"Flo Rida Videos"},
+    {a:"Dua Lipa", t:"Levitating", y:2020, id:"TUVcZfQe-Kw", s:SRC_GOAT+" #32 (video s DaBabyjem)", ch:"Dua Lipa"},
+    {a:"The Police", t:"Every Breath You Take", y:1983, id:"OMOGaugKpzs", s:SRC_GOAT+" #35", ch:"ThePoliceVEVO"},
+    {a:"Gotye ft. Kimbra", t:"Somebody That I Used to Know", y:2011, id:"8UVNT4wvIGY", s:SRC_GOAT+" #36", ch:"Gotye"},
+    {a:"Luis Fonsi & Daddy Yankee", t:"Despacito", y:2017, id:"kJQP7kiw5Fk", s:SRC_GOAT+" #37", ch:"LuisFonsiVEVO"},
+    {a:"Adele", t:"Rolling in the Deep", y:2010, id:"rYEDA3JcQqw", s:SRC_GOAT+" #39", ch:"Adele"},
+    {a:"Lil Nas X ft. Billy Ray Cyrus", t:"Old Town Road", y:2019, id:"w2Ov5jzm3j8", s:SRC_GOAT+" #41", ch:"LilNasXVEVO"},
+    {a:"Mariah Carey & Boyz II Men", t:"One Sweet Day", y:1995, id:"UXxRyNvTPr8", s:SRC_GOAT+" #43", ch:"MariahCareyVEVO"},
+    {a:"Savage Garden", t:"Truly Madly Deeply", y:1997, id:"WQnAxOQxQIU", s:SRC_GOAT+" #44", ch:"SavageGardenVEVO"},
+    {a:"Queen", t:"Another One Bites the Dust", y:1980, id:"rY0WxgSXdEE", s:SRC_GOAT+" #48", ch:"Queen Official"},
+    {a:"Nickelback", t:"How You Remind Me", y:2001, id:"1cQh1ccqu8M", s:SRC_GOAT+" #51", ch:"Nickelback"},
+    {a:"Carly Rae Jepsen", t:"Call Me Maybe", y:2012, id:"fWNaR-rxAic", s:SRC_GOAT+" #56", ch:"CarlyRaeJepsenVEVO"},
+    {a:"Robin Thicke ft. T.I. & Pharrell", t:"Blurred Lines", y:2013, id:"yyDUC1LUXSU", s:SRC_GOAT+" #57", ch:"RobinThickeVEVO"},
+    {a:"Alicia Keys", t:"No One", y:2007, id:"rywUS-ohqeE", s:SRC_GOAT+" #59", ch:"aliciakeysVEVO"},
+    {a:"Whitney Houston", t:"I Will Always Love You", y:1992, id:"3JWTaaS7LdU", s:SRC_GOAT+" #60", ch:"whitneyhoustonVEVO"},
+    {a:"Boyz II Men", t:"End of the Road", y:1992, id:"zDKO6XYXioc", s:SRC_GOAT+" #61", ch:"BoyzIIMenVEVO"},
+    {a:"Ed Sheeran", t:"Perfect", y:2017, id:"2Vv-BfVoq4g", s:SRC_GOAT+" #62", ch:"Ed Sheeran"},
+    {a:"The Black Eyed Peas", t:"Boom Boom Pow", y:2009, id:"4m48GqaOz90", s:SRC_GOAT+" #63", ch:"BlackEyedPeasVEVO"},
+    {a:"Blondie", t:"Call Me", y:1980, id:"StKVS0eI85I", s:SRC_GOAT+" #64", ch:"BlondieVEVO"},
+    {a:"Bee Gees", t:"Stayin' Alive", y:1977, id:"I_izvAbhExY", s:SRC_GOAT+" #66", ch:"beegees"},
+    {a:"Ke$ha", t:"TiK ToK", y:2009, id:"iP6XpLQM2Cs", s:SRC_GOAT+" #68", ch:"keshaVEVO"},
+    {a:"Kanye West ft. Jamie Foxx", t:"Gold Digger", y:2005, id:"6vwNcNOTVzY", s:SRC_GOAT+" #70", ch:"KanyeWestVEVO"},
+    {a:"Timbaland ft. OneRepublic", t:"Apologize", y:2007, id:"ZSM3w1v-A_Y", s:SRC_GOAT+" #71", ch:"TimbalandVEVO"},
+    {a:"Ace of Base", t:"The Sign", y:1994, id:"iqu132vTl5Y", s:SRC_GOAT+" #72", ch:"Ace of Base"},
+    {a:"Meghan Trainor", t:"All About That Bass", y:2014, id:"7PCkvCPvDXk", s:SRC_GOAT+" #74", ch:"MeghanTrainorVEVO"},
+    {a:"Post Malone & Swae Lee", t:"Sunflower", y:2018, id:"ApXoWvfEYVU", s:SRC_GOAT+" #75", ch:"PostMaloneVEVO"},
+    {a:"Lorde", t:"Royals", y:2013, id:"nlcIKh6sBtc", s:SRC_GOAT+" #77", ch:"LordeVEVO"},
+    {a:"Drake", t:"God's Plan", y:2018, id:"xpVfcZ0ZcFM", s:SRC_GOAT+" #83", ch:"DrakeVEVO"},
+    {a:"Maroon 5 ft. Christina Aguilera", t:"Moves Like Jagger", y:2011, id:"iEPTlhBmwRg", s:SRC_GOAT+" #84", ch:"Maroon5VEVO"},
+    {a:"Pharrell Williams", t:"Happy", y:2013, id:"ZbZSe6N_BXs", s:SRC_GOAT+" #88", ch:"PharrellWilliamsVEVO"},
+    {a:"Bruno Mars", t:"Just the Way You Are", y:2010, id:"LjhCEhWiKXk", s:SRC_GOAT+" #91", ch:"Bruno Mars"},
+    {a:"Nelly ft. Kelly Rowland", t:"Dilemma", y:2002, id:"8WYHDfJDPDc", s:SRC_GOAT+" #92", ch:"NellyVEVO"},
+    {a:"Shania Twain", t:"You're Still the One", y:1998, id:"KNZH-emehxA", s:SRC_GOAT+" #94", ch:"ShaniaTwainVEVO"},
+    {a:"Michael Jackson", t:"Billie Jean", y:1983, id:"Zi_XLOBDo_Y", s:SRC_GOAT+" #95", ch:"michaeljacksonVEVO"},
+    {a:"Post Malone ft. 21 Savage", t:"rockstar", y:2017, id:"UceaB4D0jpo", s:SRC_GOAT+" #97", ch:"PostMaloneVEVO"},
+    {a:"Coolio ft. L.V.", t:"Gangsta's Paradise", y:1995, id:"fPO76Jlnz6c", s:SRC_GOAT+" #98", ch:"Tommy Boy"}
+  ]},
+  "novival": { name: "Novi val (HR)", note: "Rock Express Top 100 YU rocka", songs: [
+    {a:"Azra", t:"A šta da radim", y:1979, s:SRC_RE+" #7"},
+    {a:"Azra", t:"Balkan", y:1979, s:SRC_RE+" #16"},
+    {a:"Haustor", t:"Šejn", y:1985, s:SRC_RE+" #26"},
+    {a:"Film", t:"Mi nismo sami", y:1983, s:SRC_RE+" #36"},
+    {a:"Azra", t:"Lijepe žene prolaze kroz grad", y:1980, s:SRC_RE+" #37"},
+    {a:"Prljavo kazalište", t:"Mi plešemo", y:1981, s:SRC_RE+" #49"},
+    {a:"Haustor", t:"Moja prva ljubav", y:1981, s:SRC_RE+" #63"},
+    {a:"Azra", t:"Kao ti i ja", y:1982, s:SRC_RE+" #71"},
+    {a:"Azra", t:"Gracija", y:1980, s:SRC_RE+" #73"},
+    {a:"Prljavo kazalište", t:"Crno-bijeli svijet", y:1981, s:SRC_RE+" #74"},
+    {a:"Prljavo kazalište", t:"Ma kog me Boga za tebe pitaju", y:1985, s:SRC_RE+" #77"},
+    {a:"Film", t:"Zajedno", y:1980, s:SRC_RE+" #81"},
+    {a:"Aerodrom", t:"Fratello", y:1984, s:SRC_RE+" #87"}
+  ]}
 };
+/* Pjesme bez provjerenog linka: ključ je izvođač|naziv, link dodaješ u Pregledu. */
+const keyOf = s => s.a+"|"+s.t;
 
 /* ---------- STANJE ---------- */
 const store = {
@@ -193,6 +287,14 @@ const store = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} }
 };
 let excluded = new Set(store.get("pp_excluded",[]));
+let links = store.get("pp_links",{});
+const idOf = s => s.id || links[keyOf(s)] || null;
+const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
+function parseYT(v){
+  v = (v||"").trim();
+  const m = v.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([A-Za-z0-9_-]{11})/) || v.match(/^([A-Za-z0-9_-]{11})$/);
+  return m ? m[1] : null;
+}
 let score = store.get("pp_score",{a:0,b:0,round:1,names:["Tim 1","Tim 2"]});
 let selected = store.get("pp_lists",["90s"]);
 let deck = [], current = null, player = null, ready = false, state = "idle";
@@ -203,9 +305,9 @@ const show = id => ["startScreen","reviewScreen","gameScreen"].forEach(s => $(s)
 /* ---------- START ---------- */
 function renderPick(){
   $("pick").innerHTML = Object.entries(LISTS).map(([k,l]) => {
-    const n = l.songs.filter(s=>!excluded.has(s.id)).length;
+    const n = playable(l).length, missing = l.songs.filter(s=>!idOf(s)).length;
     const off = n===0;
-    return `<label class="${off?'off':''}"><span>${l.name}<br><small>${n} pjesama · ${l.note}</small></span>
+    return `<label class="${off?'off':''}"><span>${l.name}<br><small>${n} pjesama · ${l.note}${missing?` · ${missing} čeka link`:''}</small></span>
       <input type="checkbox" id="list_${k}" data-k="${k}" ${selected.includes(k)&&!off?'checked':''} ${off?'disabled':''}></label>`;
   }).join("");
   $("pick").querySelectorAll("input").forEach(i => i.onchange = () => {
@@ -215,27 +317,66 @@ function renderPick(){
 }
 function renderReview(){
   const rows = [];
-  for (const l of Object.values(LISTS)) for (const s of l.songs) {
-    rows.push(`<tr><td><input type="checkbox" id="rv_${s.id}" data-id="${s.id}" ${excluded.has(s.id)?'':'checked'} aria-label="Uključi ${s.t}"></td>
-      <td><b>${s.a}</b> – ${s.t} (${s.y})<br>
-      <a href="https://www.youtube.com/watch?v=${s.id}" target="_blank" rel="noopener">YouTube · ${s.ch}</a><br>
-      <span class="src">${s.s}</span></td></tr>`);
+  for (const [lk,l] of Object.entries(LISTS)) {
+    rows.push(`<tr><td colspan="2" class="sec">${l.name}</td></tr>`);
+    l.songs.forEach((s,i) => {
+      const id = idOf(s), q = encodeURIComponent(s.a+" "+s.t);
+      const linkCell = id
+        ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||"tvoj link"}</a>${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
+        : `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
+           <input class="paste" id="ln_${lk}_${i}" data-set="${lk}:${i}" placeholder="Zalijepi link videa" inputmode="url">`;
+      rows.push(`<tr><td>${id?`<input type="checkbox" id="rv_${lk}_${i}" data-id="${id}" ${excluded.has(id)?'':'checked'} aria-label="Uključi ${s.t}">`:''}</td>
+        <td><b>${s.a}</b> – ${s.t} (${s.y})<br>${linkCell}<br><span class="src">${s.s}</span></td></tr>`);
+    });
   }
   $("reviewBody").innerHTML = rows.join("");
-  $("reviewBody").querySelectorAll("input").forEach(i => i.onchange = () => {
+  $("reviewBody").querySelectorAll("input[type=checkbox]").forEach(i => i.onchange = () => {
     i.checked ? excluded.delete(i.dataset.id) : excluded.add(i.dataset.id);
     store.set("pp_excluded",[...excluded]);
+  });
+  const songAt = ref => { const [lk,i] = ref.split(":"); return LISTS[lk].songs[+i]; };
+  $("reviewBody").querySelectorAll("input.paste").forEach(i => i.oninput = () => {
+    const id = parseYT(i.value);
+    if (!id) return;
+    links[keyOf(songAt(i.dataset.set))] = id; store.set("pp_links",links); renderReview();
+  });
+  $("reviewBody").querySelectorAll("button[data-clear]").forEach(b => b.onclick = () => {
+    delete links[keyOf(songAt(b.dataset.clear))]; store.set("pp_links",links); renderReview();
   });
 }
 $("reviewBtn").onclick = () => { renderReview(); show("reviewScreen"); };
 $("backBtn").onclick = () => { renderPick(); show("startScreen"); };
 $("resetBtn").onclick = () => { score.a=0; score.b=0; score.round=1; saveScore(); $("resetBtn").textContent="Rezultat obrisan"; setTimeout(()=>$("resetBtn").textContent="Novi rezultat",1500); };
-$("menuBtn").onclick = () => { if(player&&ready) player.pauseVideo(); renderPick(); show("startScreen"); };
+/* ---------- ZAKLJUČAVANJE: puni zaslon, bez gašenja ekrana, tipka Natrag traži potvrdu ---------- */
+let wakeLock = null;
+const inGame = () => !$("gameScreen").hidden;
+async function keepAwake(){ try{ wakeLock = await navigator.wakeLock?.request("screen") }catch(e){} }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState==="visible" && inGame()) keepAwake(); });
+async function lockIn(){
+  try{ await document.documentElement.requestFullscreen?.({navigationUI:"hide"}) }catch(e){}
+  try{ await screen.orientation?.lock?.("portrait") }catch(e){}
+  keepAwake();
+  history.pushState({pp:"game"},"");
+}
+function askExit(){ $("exitVeil").hidden = false; }
+window.addEventListener("popstate", () => { if (inGame()){ history.pushState({pp:"game"},""); askExit(); } });
+$("menuBtn").onclick = askExit;
+$("stayBtn").onclick = () => { $("exitVeil").hidden = true; };
+$("leaveBtn").onclick = async () => {
+  $("exitVeil").hidden = true;
+  if(player&&ready) player.pauseVideo();
+  try{ await wakeLock?.release() }catch(e){} wakeLock = null;
+  try{ if(document.fullscreenElement) await document.exitFullscreen() }catch(e){}
+  renderPick(); show("startScreen");
+};
 
 /* ---------- RUNDE ---------- */
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a }
 function buildDeck(){
-  deck = shuffle(selected.flatMap(k => LISTS[k].songs).filter(s=>!excluded.has(s.id)));
+  const seen = new Set();
+  deck = shuffle(selected.flatMap(k => playable(LISTS[k]))
+    .filter(s => { const id=idOf(s); if(seen.has(id)) return false; seen.add(id); return true; })
+    .map(s => ({...s, id: idOf(s)})));
 }
 function saveScore(){
   score.names=[$("nameA").value,$("nameB").value];
@@ -286,7 +427,7 @@ $("skipBtn").onclick = () => state==="revealed" ? award(null) : (current ? nextS
 $("startBtn").onclick = () => {
   if (!selected.length){ $("startBtn").textContent="Odaberi barem jednu listu"; setTimeout(()=>$("startBtn").textContent="Kreni",1500); return; }
   buildDeck(); $("nameA").value=score.names[0]; $("nameB").value=score.names[1]; saveScore();
-  show("gameScreen"); keepAwake();
+  show("gameScreen"); lockIn();
   if (ready) nextSong(); else setUI("loading");
 };
 
@@ -319,8 +460,6 @@ window.onYouTubeIframeAPIReady = () => {
     }
   });
 };
-async function keepAwake(){ try{ await navigator.wakeLock?.request("screen") }catch(e){} }
-
 renderPick();
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
