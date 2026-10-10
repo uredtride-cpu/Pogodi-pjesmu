@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pogodi pjesmu</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16122b">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@400;600;800&display=swap">
 <style>
@@ -132,6 +136,7 @@ h1 span{color:var(--buzz)}
       <button class="ghost" id="reviewBtn" type="button">Pregled pjesama</button>
       <button class="ghost" id="resetBtn" type="button">Novi rezultat</button>
     </div>
+    <button class="ghost" id="installBtn" type="button" hidden>Dodaj na početni zaslon</button>
     <div class="spacer"></div>
     <button class="big" id="startBtn" type="button">Kreni</button>
   </section>
@@ -793,6 +798,19 @@ window.onYouTubeIframeAPIReady = () => {
   });
 };
 renderPick();
+
+/* ---------- INSTALACIJA (ikona na početnom zaslonu) ---------- */
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; $("installBtn").hidden = false; });
+$("installBtn").onclick = async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  const { outcome } = await installPrompt.userChoice.catch(() => ({}));
+  installPrompt = null; $("installBtn").hidden = true;
+  if (outcome !== "accepted") $("installBtn").hidden = true;
+};
+window.addEventListener("appinstalled", () => { $("installBtn").hidden = true; });
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
 </body>
