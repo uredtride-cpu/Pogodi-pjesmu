@@ -143,8 +143,8 @@ h1 span{color:var(--buzz)}
   <!-- REVIEW -->
   <section class="screen" id="reviewScreen" hidden>
     <h1 style="font-size:34px">Pregled</h1>
+    <p class="lead" id="reviewScope"></p>
     <div class="auto" id="summary"></div>
-    <p class="lead">Isključi pjesmu kvačicom ako je kriva verzija. Klikni link da je poslušaš. Odabir se pamti na ovom mobitelu.</p>
     <div class="auto">
       <label for="apiKey">YouTube API ključ <small>(sprema se samo na ovom mobitelu)</small></label>
       <div class="row">
@@ -532,7 +532,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 const metaOf = s => linkMeta[keyOf(s)] || {};
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 18:10";
+const APP_VERSION = "2026-10-10 18:45";
 let blocked = store.get("pp_blocked",{});
 const idOf = s => { const l = links[keyOf(s)]; if (l && !blocked[l]) return l; if (s.id && !blocked[s.id]) return s.id; return null; };
 const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
@@ -562,13 +562,13 @@ function renderPick(){
   });
 }
 function renderSummary(){
-  const all = new Map(); Object.values(LISTS).forEach(l => l.songs.forEach(s => all.set(keyOf(s), s)));
+  const all = new Map(); shownLists().forEach(([,l]) => l.songs.forEach(s => all.set(keyOf(s), s)));
   const songs = [...all.values()];
   const ok = songs.filter(s => idOf(s) && !excluded.has(idOf(s))).length;
   const off = songs.filter(s => idOf(s) && excluded.has(idOf(s))).length;
   const blk = songs.filter(s => !idOf(s) && ((s.id && blocked[s.id]) || blocked[links[keyOf(s)]])).length;
   const none = songs.length - ok - off - blk;
-  $("summary").innerHTML = `<b>${songs.length} različitih pjesama u svim listama</b>
+  $("summary").innerHTML = `<b>${songs.length} pjesama u odabranim listama</b>
     <span class="hint">${ok} spremno za igru · ${off} isključio si ti · ${blk} YouTube ne pušta na mobitelu (traže zamjenu) · ${none} bez linka</span>
     ${(off||blk)?`<button class="ghost" id="restoreBtn" type="button">Vrati sve isključene i blokirane (${off+blk})</button>`:""}
     <span class="src">Verzija ${APP_VERSION}</span>`;
@@ -578,7 +578,8 @@ function renderSummary(){
 function renderReview(){
   renderSummary();
   const rows = [];
-  for (const [lk,l] of Object.entries(LISTS)) {
+  if (!shownLists().length) rows.push(`<tr><td colspan="2">Nijedna lista nije odabrana. Vrati se i označi listu na početnom ekranu.</td></tr>`);
+  for (const [lk,l] of shownLists()) {
     rows.push(`<tr><td colspan="2" class="sec">${l.name}</td></tr>`);
     l.songs.forEach((s,i) => {
       const id = idOf(s), q = encodeURIComponent(s.a+" "+s.t);
@@ -606,7 +607,11 @@ function renderReview(){
     delete links[k]; delete linkMeta[k]; store.set("pp_links",links); store.set("pp_linkmeta",linkMeta); renderReview();
   });
 }
-$("reviewBtn").onclick = () => { renderReview(); updateAutoBtn(); show("reviewScreen"); };
+$("reviewBtn").onclick = () => {
+  const names = shownLists().map(([,l]) => l.name);
+  $("reviewScope").textContent = names.length ? `Prikazane liste: ${names.join(", ")}. Isključi pjesmu kvačicom ako je kriva verzija.` : "";
+  renderReview(); updateAutoBtn(); show("reviewScreen");
+};
 
 /* ---------- AUTOMATSKA PRETRAGA (YouTube Data API v3) ----------
    Jedna pretraga = 100 jedinica kvote; besplatno 10.000/dan, dakle ~100 pjesama dnevno.
@@ -614,8 +619,15 @@ $("reviewBtn").onclick = () => { renderReview(); updateAutoBtn(); show("reviewSc
 let apiKey = store.get("pp_apikey","");
 $("apiKey").value = apiKey;
 $("saveKey").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); $("autoStatus").textContent = apiKey ? "Ključ spremljen. Tražim linkove…" : "Ključ obrisan."; if (apiKey) autoFill(false); };
-const missingSongs = () => Object.values(LISTS).flatMap(l => l.songs).filter(s => !idOf(s));
-function updateAutoBtn(){ const n = missingSongs().length; $("autoBtn").textContent = n ? `Automatski pronađi linkove (${n})` : "Svi linkovi su popunjeni"; $("autoBtn").disabled = !n; }
+/* Pregled i gumb za pretragu rade samo s listama označenima na početnom ekranu;
+   tiha pretraga pri otvaranju igre i dalje popunjava sve liste. */
+const shownLists = () => Object.entries(LISTS).filter(([k]) => selected.includes(k));
+const missingSongs = (onlySelected) => {
+  const seen = new Set();
+  return (onlySelected ? shownLists().map(([,l]) => l) : Object.values(LISTS)).flatMap(l => l.songs)
+    .filter(s => !idOf(s) && !seen.has(keyOf(s)) && seen.add(keyOf(s)));
+};
+function updateAutoBtn(){ const n = missingSongs(true).length; $("autoBtn").textContent = n ? `Automatski pronađi linkove (${n})` : "Svi linkovi su popunjeni"; $("autoBtn").disabled = !n; }
 const norm = x => (x||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/đ/g,"d").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
 const decode = x => { const t=document.createElement("textarea"); t.innerHTML=x; return t.value; };
 const BAD = /karaoke|cover|instrumental|remix|\b8d\b|nightcore|sped up|slowed|reverb|tutorial|lesson|reaction|bass boost|1 hour|loop|guitar|drum|piano|backing track|parody|mashup/i;
@@ -645,7 +657,7 @@ let tried = store.get("pp_tried",{});
 const WEEK = 7*24*3600*1000;
 async function autoFill(silent){
   if (!apiKey){ $("autoStatus").textContent = "Prvo upiši YouTube API ključ."; return; }
-  const todo = missingSongs().filter(s => !silent || !(tried[keyOf(s)] > Date.now()-WEEK));
+  const todo = missingSongs(!silent).filter(s => !silent || !(tried[keyOf(s)] > Date.now()-WEEK));
   if (!todo.length) return;
   let found = 0, none = [];
   $("autoBtn").disabled = true;
@@ -674,7 +686,7 @@ async function autoFill(silent){
     if (i === todo.length-1) $("autoStatus").textContent = `Gotovo: pronađeno ${found} od ${todo.length}.` + (none.length ? ` Bez rezultata: ${none.join(", ")}.` : "") + " Provjeri ih na popisu.";
   }
   renderReview(); updateAutoBtn(); renderPick();
-  $("autoBtn").disabled = !missingSongs().length;
+  $("autoBtn").disabled = !missingSongs(true).length;
 }
 $("autoBtn").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); autoFill(false); };
 // Ključ spremljen → pretraga se pokreće sama pri otvaranju igre, bez odobravanja
