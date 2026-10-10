@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pogodi pjesmu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Figtree:wght@400;600;800&display=swap">
+<style>
+/* Layout: one-screen party app, phone-first. Top: score strip. Middle: stage (covered player). Bottom: one giant action. */
+:root{
+  --night:#16122b;      /* pozadina */
+  --panel:#231d42;      /* plohe */
+  --line:#3a3266;
+  --cream:#f6efe1;      /* tekst */
+  --muted:#a59fc4;
+  --buzz:#e8402f;       /* STOP */
+  --teamA:#f2b134;      /* tim 1 */
+  --teamB:#3fc1b5;      /* tim 2 */
+  --display:"Bowlby One","Arial Black",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--cream);font-family:var(--body);font-size:16px;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+.app{height:100%;display:flex;flex-direction:column;gap:14px;max-width:520px;margin:0 auto;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
+[hidden]{display:none!important}
+
+/* score */
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.team{background:var(--panel);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.team.b{text-align:right}
+.team input{background:transparent;border:0;color:var(--muted);font:600 13px var(--body);letter-spacing:.06em;text-transform:uppercase;width:100%;padding:0}
+.team.b input{text-align:right}
+.team .pts{font:44px/1 var(--display);font-variant-numeric:tabular-nums}
+.team.a .pts{color:var(--teamA)} .team.b .pts{color:var(--teamB)}
+.round{font:600 12px var(--body);color:var(--muted);text-align:center;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
+.round b{display:block;font:22px var(--display);color:var(--cream);letter-spacing:0}
+
+/* stage */
+.stage{position:relative;flex:1;min-height:220px;border-radius:20px;overflow:hidden;background:var(--panel)}
+#player,#player iframe{position:absolute;inset:0;width:100%;height:100%}
+.cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:var(--panel);padding:20px;text-align:center;transition:opacity .35s}
+.cover.gone{opacity:0;pointer-events:none}
+.disc{width:min(46vw,170px);aspect-ratio:1;border-radius:50%;max-width:100%;
+  background:repeating-radial-gradient(circle at 50% 50%,#2c2552 0 2px,#1b1636 2px 5px);
+  position:relative;box-shadow:0 0 0 2px var(--line)}
+.disc::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--buzz);box-shadow:inset 0 0 0 6px #b52a1d}
+.spin .disc{animation:spin 1.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin .disc{animation:none}}
+.status{font:800 18px var(--body);text-wrap:balance}
+.hint{color:var(--muted);font-size:14px;max-width:32ch;text-wrap:balance}
+
+.answer{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(transparent,rgba(10,8,22,.92) 35%)}
+.answer .artist{font:600 15px var(--body);color:var(--muted)}
+.answer .title{font:26px/1.1 var(--display);text-wrap:balance}
+.answer .meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* controls */
+.controls{display:flex;flex-direction:column;gap:10px}
+.smash{height:min(30vh,170px);border-radius:24px;background:var(--buzz);color:#fff;font:clamp(40px,12vw,64px) var(--display);
+  box-shadow:0 8px 0 #9e2418;transition:transform .06s,box-shadow .06s;letter-spacing:.02em}
+.smash:active{transform:translateY(6px);box-shadow:0 2px 0 #9e2418}
+.big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:24px var(--display);box-shadow:0 6px 0 #c9bfa8}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 #c9bfa8}
+.award{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.award button{height:72px;border-radius:18px;font:20px var(--display);color:var(--night)}
+.award .a{background:var(--teamA)} .award .b{background:var(--teamB)}
+.row{display:flex;gap:10px}
+.ghost{flex:1;height:46px;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted);font-weight:600}
+
+/* start + list screens */
+.screen{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
+h1{font:clamp(40px,13vw,58px)/.95 var(--display);margin:8px 0 0;text-wrap:balance}
+h1 span{color:var(--buzz)}
+.lead{color:var(--muted);margin:0;line-height:1.5;max-width:42ch}
+.pick{display:flex;flex-direction:column;gap:8px}
+.pick label{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border-radius:14px;padding:14px 16px;font-weight:800}
+.pick label small{color:var(--muted);font-weight:600}
+.pick input{accent-color:var(--buzz);width:20px;height:20px}
+.pick label.off{opacity:.5}
+.list{flex:1;overflow:auto;background:var(--panel);border-radius:14px;min-height:0}
+.list table{width:100%;border-collapse:collapse;font-size:14px}
+.list td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.list td:first-child{width:36px}
+.list a{color:var(--teamB)}
+.list .src{color:var(--muted);font-size:12px}
+.spacer{flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START -->
+  <section class="screen" id="startScreen">
+    <h1>Pogodi <span>pjesmu</span></h1>
+    <p class="lead">Dva tima, jedan mobitel. Pjesma kreće od nasumičnog mjesta. Tko prvi zna, udara STOP i odgovara naglas.</p>
+    <div class="pick" id="pick"></div>
+    <div class="row">
+      <button class="ghost" id="reviewBtn" type="button">Pregled pjesama</button>
+      <button class="ghost" id="resetBtn" type="button">Novi rezultat</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="big" id="startBtn" type="button">Kreni</button>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="screen" id="reviewScreen" hidden>
+    <h1 style="font-size:34px">Pregled</h1>
+    <p class="lead">Isključi pjesmu kvačicom ako je kriva verzija. Klikni link da je poslušaš. Odabir se pamti na ovom mobitelu.</p>
+    <div class="list"><table><tbody id="reviewBody"></tbody></table></div>
+    <button class="big" id="backBtn" type="button">Gotovo</button>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="gameScreen" hidden>
+    <div class="score">
+      <div class="team a"><input id="nameA" value="Tim 1" aria-label="Ime tima 1"><span class="pts" id="ptsA">0</span></div>
+      <div class="round">Runda<b id="roundNo">1</b><span id="left"></span></div>
+      <div class="team b"><input id="nameB" value="Tim 2" aria-label="Ime tima 2"><span class="pts" id="ptsB">0</span></div>
+    </div>
+
+    <div class="stage">
+      <div id="player"></div>
+      <div class="cover" id="cover">
+        <div class="disc"></div>
+        <div class="status" id="status">Učitavam…</div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div class="answer" id="answer" hidden>
+        <div class="artist" id="aArtist"></div>
+        <div class="title" id="aTitle"></div>
+        <div class="meta" id="aMeta"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="smash" id="stopBtn" type="button">STOP</button>
+      <button class="big" id="revealBtn" type="button" hidden>Prikaži odgovor</button>
+      <div class="award" id="award" hidden>
+        <button class="a" id="giveA" type="button">+1 Tim 1</button>
+        <button class="b" id="giveB" type="button">+1 Tim 2</button>
+      </div>
+      <div class="row">
+        <button class="ghost" id="resumeBtn" type="button" hidden>Nastavi pjesmu</button>
+        <button class="ghost" id="skipBtn" type="button">Preskoči</button>
+        <button class="ghost" id="menuBtn" type="button">Izbornik</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- PODACI ----------
+   Svaki zapis: izvođač, naziv, godina, YouTube ID, izvor ljestvice, provjera.
+   Provjera = YouTube oEmbed vratio naslov i službeni kanal (VEVO / izdavač / izvođač). */
+const SRC_UK = "Music Week / OCC: Top 20 najprodavanijih singlova 90-ih (UK)";
+const SRC_US = "Billboard: Top 20 Hot 100 hitova 90-ih (US)";
+const LISTS = {
+  "90s": { name: "Hitovi 90-ih", note: "UK + US ljestvice desetljeća", songs: [
+    {a:"Bryan Adams", t:"(Everything I Do) I Do It for You", y:1991, id:"Y0pdQU87dc8", s:SRC_UK, ch:"Bryan Adams"},
+    {a:"Aqua", t:"Barbie Girl", y:1997, id:"ZyhrYis509A", s:SRC_UK, ch:"AquaVEVO"},
+    {a:"Cher", t:"Believe", y:1998, id:"nZXRV4MezEw", s:SRC_UK, ch:"Cher"},
+    {a:"Britney Spears", t:"...Baby One More Time", y:1999, id:"C-u5WLJ9Yk4", s:SRC_UK, ch:"BritneySpearsVEVO"},
+    {a:"Puff Daddy & Faith Evans ft. 112", t:"I'll Be Missing You", y:1997, id:"NKMtZm2YuBE", s:SRC_UK, ch:"Bad Boy Entertainment"},
+    {a:"Whitney Houston", t:"I Will Always Love You", y:1992, id:"3JWTaaS7LdU", s:SRC_UK, ch:"whitneyhoustonVEVO"},
+    {a:"Spice Girls", t:"Wannabe", y:1996, id:"gJLIiF15wjQ", s:SRC_UK, ch:"SpiceGirlsVEVO"},
+    {a:"Fugees", t:"Killing Me Softly", y:1996, id:"oKOtzIo-uYw", s:SRC_UK, ch:"TheFugeesVEVO"},
+    {a:"Coolio ft. L.V.", t:"Gangsta's Paradise", y:1995, id:"fPO76Jlnz6c", s:SRC_UK, ch:"Tommy Boy"},
+    {a:"Toni Braxton", t:"Un-Break My Heart", y:1996, id:"p2Rch6WvPJE", s:SRC_US, ch:"ToniBraxtonVEVO"},
+    {a:"Mariah Carey & Boyz II Men", t:"One Sweet Day", y:1995, id:"UXxRyNvTPr8", s:SRC_US, ch:"MariahCareyVEVO"},
+    {a:"Savage Garden", t:"Truly Madly Deeply", y:1998, id:"WQnAxOQxQIU", s:SRC_US, ch:"SavageGardenVEVO"},
+    {a:"Boyz II Men", t:"End of the Road", y:1992, id:"zDKO6XYXioc", s:SRC_US, ch:"BoyzIIMenVEVO"},
+    {a:"Boyz II Men", t:"I'll Make Love to You", y:1994, id:"fV8vB1BB2qc", s:SRC_US, ch:"BoyzIIMenVEVO"},
+    {a:"Ace of Base", t:"The Sign", y:1994, id:"iqu132vTl5Y", s:SRC_US, ch:"Ace of Base"},
+    {a:"Shania Twain", t:"You're Still the One", y:1998, id:"KNZH-emehxA", s:SRC_US, ch:"ShaniaTwainVEVO"},
+    {a:"Sinéad O'Connor", t:"Nothing Compares 2 U", y:1990, id:"0-EF60neguk", s:SRC_US, ch:"SineadOConnorVEVO"},
+    {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_US, ch:"LosDelRioVEVO"}
+  ]},
+  "novival": { name: "Novi val (HR)", note: "u pripremi", songs: [] }
+};
+
+/* ---------- STANJE ---------- */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d }catch(e){ return d } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} }
+};
+let excluded = new Set(store.get("pp_excluded",[]));
+let score = store.get("pp_score",{a:0,b:0,round:1,names:["Tim 1","Tim 2"]});
+let selected = store.get("pp_lists",["90s"]);
+let deck = [], current = null, player = null, ready = false, state = "idle";
+
+const $ = id => document.getElementById(id);
+const show = id => ["startScreen","reviewScreen","gameScreen"].forEach(s => $(s).hidden = s!==id);
+
+/* ---------- START ---------- */
+function renderPick(){
+  $("pick").innerHTML = Object.entries(LISTS).map(([k,l]) => {
+    const n = l.songs.filter(s=>!excluded.has(s.id)).length;
+    const off = n===0;
+    return `<label class="${off?'off':''}"><span>${l.name}<br><small>${n} pjesama · ${l.note}</small></span>
+      <input type="checkbox" id="list_${k}" data-k="${k}" ${selected.includes(k)&&!off?'checked':''} ${off?'disabled':''}></label>`;
+  }).join("");
+  $("pick").querySelectorAll("input").forEach(i => i.onchange = () => {
+    selected = [...$("pick").querySelectorAll("input:checked")].map(x=>x.dataset.k);
+    store.set("pp_lists",selected);
+  });
+}
+function renderReview(){
+  const rows = [];
+  for (const l of Object.values(LISTS)) for (const s of l.songs) {
+    rows.push(`<tr><td><input type="checkbox" id="rv_${s.id}" data-id="${s.id}" ${excluded.has(s.id)?'':'checked'} aria-label="Uključi ${s.t}"></td>
+      <td><b>${s.a}</b> – ${s.t} (${s.y})<br>
+      <a href="https://www.youtube.com/watch?v=${s.id}" target="_blank" rel="noopener">YouTube · ${s.ch}</a><br>
+      <span class="src">${s.s}</span></td></tr>`);
+  }
+  $("reviewBody").innerHTML = rows.join("");
+  $("reviewBody").querySelectorAll("input").forEach(i => i.onchange = () => {
+    i.checked ? excluded.delete(i.dataset.id) : excluded.add(i.dataset.id);
+    store.set("pp_excluded",[...excluded]);
+  });
+}
+$("reviewBtn").onclick = () => { renderReview(); show("reviewScreen"); };
+$("backBtn").onclick = () => { renderPick(); show("startScreen"); };
+$("resetBtn").onclick = () => { score.a=0; score.b=0; score.round=1; saveScore(); $("resetBtn").textContent="Rezultat obrisan"; setTimeout(()=>$("resetBtn").textContent="Novi rezultat",1500); };
+$("menuBtn").onclick = () => { if(player&&ready) player.pauseVideo(); renderPick(); show("startScreen"); };
+
+/* ---------- RUNDE ---------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a }
+function buildDeck(){
+  deck = shuffle(selected.flatMap(k => LISTS[k].songs).filter(s=>!excluded.has(s.id)));
+}
+function saveScore(){
+  score.names=[$("nameA").value,$("nameB").value];
+  store.set("pp_score",score);
+  $("ptsA").textContent=score.a; $("ptsB").textContent=score.b; $("roundNo").textContent=score.round;
+  $("giveA").textContent="+1 "+score.names[0]; $("giveB").textContent="+1 "+score.names[1];
+  $("left").textContent = deck.length ? `još ${deck.length}` : "";
+}
+["nameA","nameB"].forEach(id => $(id).oninput = saveScore);
+
+function setUI(s){
+  state = s;
+  $("stopBtn").hidden = s!=="playing";
+  $("revealBtn").hidden = s!=="stopped";
+  $("resumeBtn").hidden = s!=="stopped";
+  $("award").hidden = s!=="revealed";
+  $("answer").hidden = s!=="revealed";
+  $("cover").classList.toggle("gone", s==="revealed");
+  $("cover").classList.toggle("spin", s==="playing");
+  const txt = {loading:["Učitavam pjesmu…",""], playing:["Svira!","Tko prvi zna, udara STOP."],
+    stopped:["Stop!","Odgovor naglas. Pa Prikaži odgovor."], empty:["Nema više pjesama","Vrati se u izbornik i uključi još lista."]}[s];
+  if (txt){ $("status").textContent=txt[0]; $("hint").textContent=txt[1]; }
+  $("skipBtn").textContent = s==="revealed" ? "Nitko nije pogodio" : "Preskoči";
+}
+
+function nextSong(){
+  if (!deck.length){ current=null; setUI("empty"); return; }
+  current = deck.pop(); saveScore(); setUI("loading");
+  player.loadVideoById({videoId: current.id});
+}
+function revealAnswer(){
+  $("aArtist").textContent=current.a; $("aTitle").textContent=current.t;
+  $("aMeta").textContent=`${current.y} · ${current.s}`;
+  setUI("revealed");
+}
+function award(team){
+  if(team) score[team]++;
+  score.round++; saveScore(); nextSong();
+}
+
+$("stopBtn").onclick = () => { if(state!=="playing")return; player.pauseVideo(); setUI("stopped"); if(navigator.vibrate) navigator.vibrate(120); };
+$("resumeBtn").onclick = () => { player.playVideo(); setUI("playing"); };
+$("revealBtn").onclick = revealAnswer;
+$("giveA").onclick = () => award("a");
+$("giveB").onclick = () => award("b");
+$("skipBtn").onclick = () => state==="revealed" ? award(null) : (current ? nextSong() : null);
+
+$("startBtn").onclick = () => {
+  if (!selected.length){ $("startBtn").textContent="Odaberi barem jednu listu"; setTimeout(()=>$("startBtn").textContent="Kreni",1500); return; }
+  buildDeck(); $("nameA").value=score.names[0]; $("nameB").value=score.names[1]; saveScore();
+  show("gameScreen"); keepAwake();
+  if (ready) nextSong(); else setUI("loading");
+};
+
+/* ---------- YOUTUBE ---------- */
+let seeked = false, errStreak = 0;
+window.onYouTubeIframeAPIReady = () => {
+  player = new YT.Player("player", {
+    playerVars:{playsinline:1, controls:0, disablekb:1, rel:0, modestbranding:1, fs:0, iv_load_policy:3},
+    events:{
+      onReady: () => { ready = true; if(!$("gameScreen").hidden && !current) nextSong(); },
+      onStateChange: e => {
+        if (e.data===YT.PlayerState.PLAYING) errStreak = 0;
+        if (e.data===YT.PlayerState.PLAYING && state==="loading"){
+          if(!seeked){
+            const d = player.getDuration();
+            if (d > 90){ seeked = true; player.seekTo(20 + Math.random()*(d*0.6-20), true); }
+          }
+          setUI("playing");
+        }
+        if (e.data===YT.PlayerState.UNSTARTED || e.data===YT.PlayerState.CUED) seeked = false;
+      },
+      // 100 = video ne postoji, 101/150 = vlasnik zabranio ugradnju, 2/5 = greška -> preskoči sam
+      onError: e => {
+        seeked = false; errStreak++;
+        if (errStreak >= 3){ setUI("empty"); $("status").textContent="YouTube ne pušta pjesme";
+          $("hint").textContent="Stranica vjerojatno nije otvorena preko web adrese (https). Otvori je s GitHub Pagesa ili svog servera."; return; }
+        if (current && [100,101,150].includes(e.data)){ excluded.add(current.id); store.set("pp_excluded",[...excluded]); }
+        nextSong();
+      }
+    }
+  });
+};
+async function keepAwake(){ try{ await navigator.wakeLock?.request("screen") }catch(e){} }
+
+renderPick();
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
