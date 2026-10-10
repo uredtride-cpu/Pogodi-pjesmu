@@ -81,6 +81,12 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 h1{font:clamp(40px,13vw,58px)/.95 var(--display);margin:8px 0 0;text-wrap:balance}
 h1 span{color:var(--buzz)}
 .lead{color:var(--muted);margin:0;line-height:1.5;max-width:42ch}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.teams label{background:var(--panel);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.teams span{font:600 12px var(--body);letter-spacing:.08em;text-transform:uppercase}
+.teams label:first-child span{color:var(--teamA)} .teams label:last-child span{color:var(--teamB)}
+.teams input{background:transparent;border:0;border-bottom:2px solid var(--line);color:var(--cream);font:20px var(--display);padding:2px 0;width:100%;min-width:0}
+.teams input:focus{outline:none;border-color:var(--cream)}
 .pick{display:flex;flex-direction:column;gap:8px}
 .pick label{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border-radius:14px;padding:14px 16px;font-weight:800}
 .pick label small{color:var(--muted);font-weight:600}
@@ -96,6 +102,11 @@ h1 span{color:var(--buzz)}
 .list td.sec{font:16px var(--display);color:var(--buzz);padding-top:16px;background:var(--night)}
 .paste{display:block;width:100%;margin-top:6px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--cream);font:14px var(--body)}
 .ver{color:var(--teamA);font-weight:600}
+.auto{background:var(--panel);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.auto label{font-weight:800}
+.auto label small{color:var(--muted);font-weight:600}
+.auto input{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--night);color:var(--cream);font:15px var(--body)}
+.auto .hint{max-width:none;text-align:left}
 .mini{background:none;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
 
 /* izlaz */
@@ -112,6 +123,10 @@ h1 span{color:var(--buzz)}
   <section class="screen" id="startScreen">
     <h1>Pogodi <span>pjesmu</span></h1>
     <p class="lead">Dva tima, jedan mobitel. Pjesma kreće od nasumičnog mjesta. Tko prvi zna, udara STOP i odgovara naglas.</p>
+    <div class="teams">
+      <label for="teamA"><span>Tim 1</span><input id="teamA" maxlength="18" placeholder="npr. Jarići" autocomplete="off"></label>
+      <label for="teamB"><span>Tim 2</span><input id="teamB" maxlength="18" placeholder="npr. Susjedi" autocomplete="off"></label>
+    </div>
     <div class="pick" id="pick"></div>
     <div class="row">
       <button class="ghost" id="reviewBtn" type="button">Pregled pjesama</button>
@@ -125,6 +140,15 @@ h1 span{color:var(--buzz)}
   <section class="screen" id="reviewScreen" hidden>
     <h1 style="font-size:34px">Pregled</h1>
     <p class="lead">Isključi pjesmu kvačicom ako je kriva verzija. Klikni link da je poslušaš. Odabir se pamti na ovom mobitelu.</p>
+    <div class="auto">
+      <label for="apiKey">YouTube API ključ <small>(sprema se samo na ovom mobitelu)</small></label>
+      <div class="row">
+        <input id="apiKey" type="password" autocomplete="off" placeholder="AIza…">
+        <button class="ghost" id="saveKey" type="button" style="flex:0 0 auto;padding:0 14px">Spremi</button>
+      </div>
+      <button class="big" id="autoBtn" type="button" style="font-size:19px">Automatski pronađi linkove</button>
+      <div class="hint" id="autoStatus"></div>
+    </div>
     <div class="list"><table><tbody id="reviewBody"></tbody></table></div>
     <button class="big" id="backBtn" type="button">Gotovo</button>
   </section>
@@ -327,6 +351,24 @@ const LISTS = {
 };
 /* Pjesme bez provjerenog linka: ključ je izvođač|naziv, link dodaješ u Pregledu. */
 const keyOf = s => s.a+"|"+s.t;
+/* Top 100: pjesme bez provjerenog linka, popunjava ih automatska pretraga */
+[["Chubby Checker","The Twist",1960,2],["Bobby Darin","Mack the Knife",1959,4],["LeAnn Rimes","How Do I Live",1997,6],
+ ["Debby Boone","You Light Up My Life",1977,12],["Kim Carnes","Bette Davis Eyes",1981,18],["Diana Ross & Lionel Richie","Endless Love",1981,20],
+ ["Rod Stewart","Tonight's the Night (Gonna Be Alright)",1976,21],["Jewel","Foolish Games",1997,22],["Percy Faith","Theme from A Summer Place",1960,25],
+ ["Chic","Le Freak",1978,26],["Andy Gibb","I Just Want to Be Your Everything",1977,33],["Next","Too Close",1998,34],
+ ["Irene Cara","Flashdance... What a Feeling",1983,38],["Bobby Lewis","Tossin' and Turnin'",1961,40],["Johnny Horton","The Battle of New Orleans",1959,42],
+ ["Wings","Silly Love Songs",1976,45],["Marvin Gaye","Let's Get It On",1973,46],["Bee Gees","Night Fever",1978,47],
+ ["24kGoldn ft. iann dior","Mood",2020,49],["Paul McCartney & Michael Jackson","Say Say Say",1983,50],["Dawn ft. Tony Orlando","Tie a Yellow Ribbon Round the Ole Oak Tree",1973,52],
+ ["Tommy Edwards","It's All in the Game",1958,53],["The Beatles","I Want to Hold Your Hand",1964,54],["Andy Gibb","Shadow Dancing",1978,55],
+ ["Elton John","Candle in the Wind 1997",1997,58],["Mario","Let Me Love You",2004,65],["Kenny Rogers","Lady",1980,67],
+ ["The Monkees","I'm a Believer",1966,69],["The J. Geils Band","Centerfold",1981,73],["John Lennon","(Just Like) Starting Over",1980,76],
+ ["Brandy & Monica","The Boy Is Mine",1998,78],["Stevie B","Because I Love You (The Postman Song)",1990,79],["Joan Jett & the Blackhearts","I Love Rock 'n' Roll",1982,80],
+ ["The 5th Dimension","Aquarius/Let the Sunshine In",1969,81],["Tag Team","Whoomp! (There It Is)",1993,82],["Paul McCartney & Stevie Wonder","Ebony and Ivory",1982,85],
+ ["Paula Abdul","Rush Rush",1991,86],["Dionne Warwick & Friends","That's What Friends Are For",1985,87],["Diana Ross","Upside Down",1980,89],
+ ["The Archies","Sugar, Sugar",1969,90],["Marvin Gaye","I Heard It Through the Grapevine",1968,93],["Donna Summer","Hot Stuff",1979,96],
+ ["Steve Miller Band","Abracadabra",1982,99],["Carly Simon","You're So Vain",1972,100]
+].forEach(([a,t,y,r]) => LISTS.top100.songs.push({a,t,y,s:SRC_GOAT+" #"+r}));
+LISTS.top100.songs.sort((x,y) => +x.s.split("#")[1] - +y.s.split("#")[1]);
 
 /* ---------- STANJE ---------- */
 const store = {
@@ -335,6 +377,8 @@ const store = {
 };
 let excluded = new Set(store.get("pp_excluded",[]));
 let links = store.get("pp_links",{});
+let linkMeta = store.get("pp_linkmeta",{});
+const metaOf = s => linkMeta[keyOf(s)] || {};
 const idOf = s => s.id || links[keyOf(s)] || null;
 const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
 function parseYT(v){
@@ -369,7 +413,7 @@ function renderReview(){
     l.songs.forEach((s,i) => {
       const id = idOf(s), q = encodeURIComponent(s.a+" "+s.t);
       const linkCell = id
-        ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||"tvoj link"}</a>${s.v?` · <b class="ver">${s.v}</b>`:""}${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
+        ? `<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">YouTube · ${s.ch||metaOf(s).ch||"tvoj link"}</a>${(s.v||metaOf(s).v)?` · <b class="ver">${s.v||metaOf(s).v}</b>`:""}${!s.id&&metaOf(s).auto?` · <span class="src">auto</span>`:""}${!s.id?` · <button class="mini" data-clear="${lk}:${i}" type="button">ukloni</button>`:''}`
         : `<a href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">Traži na YouTubeu</a>
            <input class="paste" id="ln_${lk}_${i}" data-set="${lk}:${i}" placeholder="Zalijepi link videa" inputmode="url">`;
       rows.push(`<tr><td>${id?`<input type="checkbox" id="rv_${lk}_${i}" data-id="${id}" ${excluded.has(id)?'':'checked'} aria-label="Uključi ${s.t}">`:''}</td>
@@ -388,10 +432,75 @@ function renderReview(){
     links[keyOf(songAt(i.dataset.set))] = id; store.set("pp_links",links); renderReview();
   });
   $("reviewBody").querySelectorAll("button[data-clear]").forEach(b => b.onclick = () => {
-    delete links[keyOf(songAt(b.dataset.clear))]; store.set("pp_links",links); renderReview();
+    const k = keyOf(songAt(b.dataset.clear));
+    delete links[k]; delete linkMeta[k]; store.set("pp_links",links); store.set("pp_linkmeta",linkMeta); renderReview();
   });
 }
-$("reviewBtn").onclick = () => { renderReview(); show("reviewScreen"); };
+$("reviewBtn").onclick = () => { renderReview(); updateAutoBtn(); show("reviewScreen"); };
+
+/* ---------- AUTOMATSKA PRETRAGA (YouTube Data API v3) ----------
+   Jedna pretraga = 100 jedinica kvote; besplatno 10.000/dan, dakle ~100 pjesama dnevno.
+   Redoslijed izbora: "Izvođač - Topic" (službeni studijski zvuk) > VEVO/službeni kanal > "official" u naslovu > ostalo; live tek ako nema ničeg drugog. */
+let apiKey = store.get("pp_apikey","");
+$("apiKey").value = apiKey;
+$("saveKey").onclick = () => { apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey); $("autoStatus").textContent = apiKey ? "Ključ spremljen na ovom mobitelu." : "Ključ obrisan."; };
+const missingSongs = () => Object.values(LISTS).flatMap(l => l.songs).filter(s => !idOf(s));
+function updateAutoBtn(){ const n = missingSongs().length; $("autoBtn").textContent = n ? `Automatski pronađi linkove (${n})` : "Svi linkovi su popunjeni"; $("autoBtn").disabled = !n; }
+const norm = x => (x||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/đ/g,"d").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+const decode = x => { const t=document.createElement("textarea"); t.innerHTML=x; return t.value; };
+const BAD = /karaoke|cover|instrumental|remix|\b8d\b|nightcore|sped up|slowed|reverb|tutorial|lesson|reaction|bass boost|1 hour|loop|guitar|drum|piano|backing track|parody|mashup/i;
+const LIVE = /\blive\b|concert|uzivo|unplugged|\bmtv\b/i;
+function pick(song, items){
+  const main = norm(song.a.split(/ ft\.| & | i | feat/i)[0]);
+  const words = norm(song.t.replace(/\(.*?\)/g,"")).split(" ").filter(w => w.length>2);
+  let best = null;
+  for (const it of items){
+    const title = decode(it.snippet.title), ch = decode(it.snippet.channelTitle), nt = norm(title), nc = norm(ch);
+    if (BAD.test(title)) continue;
+    const hit = words.length ? words.filter(w => nt.includes(w)).length / words.length : 1;
+    if (hit < 0.5) continue;
+    let sc = hit*3, v = "";
+    if (/ - topic$/i.test(ch)) sc += 6;
+    else if (/vevo/i.test(ch) || nc.includes(main.replace(/^the /,""))) sc += 4;
+    else v = "neslužbeni kanal";
+    if (/official/i.test(title)) sc += 2;
+    if (nt.includes(main) || nc.includes(main)) sc += 2;
+    if (LIVE.test(title)){ sc -= 6; v = "live"; }
+    if (!best || sc > best.sc) best = {id: it.id.videoId, ch, v, sc, title};
+  }
+  return best;
+}
+$("autoBtn").onclick = async () => {
+  apiKey = $("apiKey").value.trim(); store.set("pp_apikey",apiKey);
+  if (!apiKey){ $("autoStatus").textContent = "Prvo upiši YouTube API ključ."; return; }
+  const todo = missingSongs(); let found = 0, none = [];
+  $("autoBtn").disabled = true;
+  for (let i=0; i<todo.length; i++){
+    const s = todo[i];
+    $("autoStatus").textContent = `Tražim ${i+1}/${todo.length}: ${s.a} – ${s.t}`;
+    const q = encodeURIComponent(`${s.a} ${s.t}`);
+    let res;
+    try{
+      res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=8&q=${q}&key=${encodeURIComponent(apiKey)}`);
+    }catch(e){ $("autoStatus").textContent = "Nema internetske veze. Probaj ponovno."; break; }
+    if (!res.ok){
+      const err = await res.json().catch(()=>({}));
+      const reason = err?.error?.errors?.[0]?.reason || "";
+      $("autoStatus").textContent = /quota/i.test(reason) ? `Dnevna kvota je potrošena (pronađeno ${found}). Nastavi sutra, igra pamti dokle je stigla.`
+        : /keyInvalid|badRequest/i.test(reason) ? "Ključ nije ispravan. Provjeri da si ga kopirao cijelog."
+        : /forbidden|accessNotConfigured|referer/i.test(reason) || res.status===403 ? "Ključ ne smije koristiti YouTube API s ove stranice. Provjeri ograničenja ključa (upute u README)."
+        : `Greška ${res.status}. Probaj ponovno.`;
+      break;
+    }
+    const best = pick(s, (await res.json()).items || []);
+    if (best){
+      const k = keyOf(s); links[k] = best.id; linkMeta[k] = {ch: best.ch, v: best.v, auto: 1}; found++;
+      store.set("pp_links",links); store.set("pp_linkmeta",linkMeta);
+    } else none.push(s.t);
+    if (i === todo.length-1) $("autoStatus").textContent = `Gotovo: pronađeno ${found} od ${todo.length}.` + (none.length ? ` Bez rezultata: ${none.join(", ")}.` : "") + " Provjeri ih na popisu.";
+  }
+  renderReview(); updateAutoBtn(); renderPick();
+};
 $("backBtn").onclick = () => { renderPick(); show("startScreen"); };
 $("resetBtn").onclick = () => { score.a=0; score.b=0; score.round=1; saveScore(); $("resetBtn").textContent="Rezultat obrisan"; setTimeout(()=>$("resetBtn").textContent="Novi rezultat",1500); };
 /* ---------- ZAKLJUČAVANJE: puni zaslon, bez gašenja ekrana, tipka Natrag traži potvrdu ---------- */
@@ -423,7 +532,7 @@ function buildDeck(){
   const seen = new Set();
   deck = shuffle(selected.flatMap(k => playable(LISTS[k]))
     .filter(s => { const id=idOf(s); if(seen.has(id)) return false; seen.add(id); return true; })
-    .map(s => ({...s, id: idOf(s)})));
+    .map(s => ({...s, id: idOf(s), v: s.v || metaOf(s).v})));
 }
 function saveScore(){
   score.names=[$("nameA").value,$("nameB").value];
@@ -433,12 +542,20 @@ function saveScore(){
   $("left").textContent = deck.length ? `još ${deck.length}` : "";
 }
 ["nameA","nameB"].forEach(id => $(id).oninput = saveScore);
+/* Imena timova na početnom ekranu (u igri se mogu mijenjati i dodirom na ime) */
+function teamName(i){ return (score.names[i]||"").trim() || `Tim ${i+1}`; }
+$("teamA").value = score.names[0]==="Tim 1" ? "" : score.names[0];
+$("teamB").value = score.names[1]==="Tim 2" ? "" : score.names[1];
+[["teamA",0],["teamB",1]].forEach(([id,i]) => $(id).oninput = () => {
+  score.names[i] = $(id).value.trim() || `Tim ${i+1}`; store.set("pp_score",score);
+});
 
 function setUI(s){
   state = s;
-  $("stopBtn").hidden = s!=="playing";
+  $("stopBtn").hidden = !(s==="playing" || s==="loading");
   $("revealBtn").hidden = s!=="stopped";
   $("resumeBtn").hidden = s!=="stopped";
+  $("resumeBtn").textContent = "Nastavi pjesmu";
   $("award").hidden = s!=="revealed";
   $("answer").hidden = s!=="revealed";
   $("cover").classList.toggle("gone", s==="revealed");
@@ -452,7 +569,14 @@ function setUI(s){
 function nextSong(){
   if (!deck.length){ current=null; setUI("empty"); return; }
   current = deck.pop(); saveScore(); setUI("loading");
+  try{ player.mute(); }catch(e){}            // početak pjesme se ne čuje dok ne skočimo na nasumično mjesto
   player.loadVideoById({videoId: current.id});
+  clearTimeout(loadTimer);
+  loadTimer = setTimeout(() => {             // Android ponekad blokira automatsko pokretanje
+    if (state!=="loading") return;
+    $("hint").textContent = "Pjesma nije krenula sama. Dodirni Pokreni pjesmu.";
+    $("resumeBtn").hidden = false; $("resumeBtn").textContent = "Pokreni pjesmu";
+  }, 4000);
 }
 function revealAnswer(){
   $("aArtist").textContent=current.a; $("aTitle").textContent=current.t;
@@ -464,8 +588,21 @@ function award(team){
   score.round++; saveScore(); nextSong();
 }
 
-$("stopBtn").onclick = () => { if(state!=="playing")return; player.pauseVideo(); setUI("stopped"); if(navigator.vibrate) navigator.vibrate(120); };
-$("resumeBtn").onclick = () => { player.playVideo(); setUI("playing"); };
+/* STOP reagira na dodir (pointerdown), ne na otpuštanje prsta: nema kašnjenja kad netko udari gumb */
+function smash(e){
+  if (e) e.preventDefault();
+  if (state!=="playing" && state!=="loading") return;
+  try{ player.pauseVideo(); }catch(_){}
+  setUI("stopped");
+  if (navigator.vibrate) navigator.vibrate(150);
+}
+$("stopBtn").addEventListener("pointerdown", smash);
+$("stopBtn").addEventListener("keydown", e => { if (e.key==="Enter" || e.key===" ") smash(e); });
+$("resumeBtn").onclick = () => {
+  if (state==="loading"){ player.playVideo(); $("resumeBtn").hidden = true; return; }
+  try{ player.unMute(); }catch(_){}
+  player.playVideo(); setUI("playing");
+};
 $("revealBtn").onclick = revealAnswer;
 $("giveA").onclick = () => award("a");
 $("giveB").onclick = () => award("b");
@@ -479,7 +616,7 @@ $("startBtn").onclick = () => {
 };
 
 /* ---------- YOUTUBE ---------- */
-let seeked = false, errStreak = 0;
+let seeked = false, errStreak = 0, loadTimer = null;
 window.onYouTubeIframeAPIReady = () => {
   player = new YT.Player("player", {
     playerVars:{playsinline:1, controls:0, disablekb:1, rel:0, modestbranding:1, fs:0, iv_load_policy:3},
@@ -487,12 +624,16 @@ window.onYouTubeIframeAPIReady = () => {
       onReady: () => { ready = true; if(!$("gameScreen").hidden && !current) nextSong(); },
       onStateChange: e => {
         if (e.data===YT.PlayerState.PLAYING) errStreak = 0;
+        // STOP je pritisnut dok se pjesma još učitavala ili premotavala: drži je zaustavljenom
+        if (e.data===YT.PlayerState.PLAYING && state==="stopped"){ player.pauseVideo(); return; }
         if (e.data===YT.PlayerState.PLAYING && state==="loading"){
+          clearTimeout(loadTimer);
           if(!seeked){
             const d = player.getDuration();
             if (d > 90){ seeked = true; player.seekTo(20 + Math.random()*(d*0.6-20), true); }
           }
           setUI("playing");
+          setTimeout(() => { if (state==="playing") try{ player.unMute(); }catch(_){} }, 350);
         }
         if (e.data===YT.PlayerState.UNSTARTED || e.data===YT.PlayerState.CUED) seeked = false;
       },
