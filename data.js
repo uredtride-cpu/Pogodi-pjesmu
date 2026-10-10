@@ -32,7 +32,7 @@ const LISTS = {
     {a:"Los del Río", t:"Macarena (Bayside Boys Mix)", y:1996, id:"zWaymcVmJ-A", s:SRC_US, ch:"LosDelRioVEVO"},
     {a:"Céline Dion", t:"My Heart Will Go On", y:1998, id:"WNIPqafd4As", s:SRC_UK, ch:"CelineDionVEVO", v:"live 2007"}
   ]},
-  "top100": { name: "Top 100 svih vremena", note: "Billboard, svi žanrovi", songs: [
+  "top100": { name: "Veliki hitovi svih vremena", note: "Billboard top 100, samo poznati u Europi", songs: [
     {a:"The Weeknd", t:"Blinding Lights", y:2019, id:"4NRXx6U8ABQ", s:SRC_GOAT+" #1", ch:"TheWeekndVEVO"},
     {a:"Santana ft. Rob Thomas", t:"Smooth", y:1999, id:"6Whgn_iE5uc", s:SRC_GOAT+" #3", ch:"SantanaVEVO"},
     {a:"Mark Ronson ft. Bruno Mars", t:"Uptown Funk", y:2014, id:"OPf0YbXqDm0", s:SRC_GOAT+" #5", ch:"MarkRonsonVEVO"},
@@ -368,3 +368,41 @@ const FOUND_LFM = {
   "Run-DMC vs Jason Nevins|It's Like That":{"id": "KgW0tSoggBk", "ch": "Jonathan Cedillo Hernandez", "v": "fan upload"}
 };
 for (const l of Object.values(LISTS)) for (const s of l.songs) if (!s.id && FOUND_LFM[keyOf(s)]) Object.assign(s, FOUND_LFM[keyOf(s)]);
+
+/* Izbačeno jer ih publika u Europi (društvo ~40 godina) uglavnom ne zna: nisu bile top 10 u Britaniji
+   ni Njemačkoj, moderni američki hip-hop/R&B, ili hitovi iz 50-ih i ranih 60-ih.
+   Lista "Rock i metal: za znalce" se namjerno ne dira. Za vraćanje pjesme samo je makni s ovog popisa. */
+const OBSCURE = new Set([
+  "Chubby Checker|The Twist",
+  "Bobby Darin|Mack the Knife",
+  "Debby Boone|You Light Up My Life",
+  "Post Malone|Circles",
+  "Jewel|Foolish Games",
+  "Percy Faith|Theme from A Summer Place",
+  "Andy Gibb|I Just Want to Be Your Everything",
+  "Next|Too Close",
+  "Flo Rida ft. T-Pain|Low",
+  "Bobby Lewis|Tossin' and Turnin'",
+  "Johnny Horton|The Battle of New Orleans",
+  "24kGoldn ft. iann dior|Mood",
+  "Tommy Edwards|It's All in the Game",
+  "Andy Gibb|Shadow Dancing",
+  "Mario|Let Me Love You",
+  "Kenny Rogers|Lady",
+  "Post Malone & Swae Lee|Sunflower",
+  "Stevie B|Because I Love You (The Postman Song)",
+  "Tag Team|Whoomp! (There It Is)",
+  "Drake|God's Plan",
+  "Paula Abdul|Rush Rush",
+  "Dionne Warwick & Friends|That's What Friends Are For",
+  "Post Malone ft. 21 Savage|rockstar",
+  "Brenda Lee|I'm Sorry",
+  "Paul Mauriat|Love Is Blue (L'amour est bleu)",
+  "The Four Seasons|Big Girls Don't Cry",
+  "Jimmy Gilmer & the Fireballs|Sugar Shack",
+  "Jimmy Dean|Big Bad John",
+  "The Emotions|Best of My Love",
+  "Robson & Jerome|Unchained Melody",
+  "Steps|Tragedy"
+]);
+for (const [k, l] of Object.entries(LISTS)) if (k !== "rock2") l.songs = l.songs.filter(s => !OBSCURE.has(keyOf(s)));

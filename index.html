@@ -85,6 +85,7 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 h1{font:clamp(40px,13vw,58px)/.95 var(--display);margin:8px 0 0;text-wrap:balance}
 h1 span{color:var(--buzz)}
 .lead{color:var(--muted);margin:0;line-height:1.5;max-width:42ch}
+#banBtn{height:44px}
 .teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .teams label{background:var(--panel);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .teams span{font:600 12px var(--body);letter-spacing:.08em;text-transform:uppercase}
@@ -179,6 +180,7 @@ h1 span{color:var(--buzz)}
         <button class="a" id="giveA" type="button">+1 Tim 1</button>
         <button class="b" id="giveB" type="button">+1 Tim 2</button>
       </div>
+      <button class="ghost" id="banBtn" type="button" hidden>Ovu nitko ne zna: izbaci zauvijek</button>
       <div class="row">
         <button class="ghost" id="resumeBtn" type="button" hidden>Nastavi pjesmu</button>
         <button class="ghost" id="skipBtn" type="button">Preskoči</button>
@@ -219,7 +221,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 19:55";
+const APP_VERSION = "2026-10-10 20:05";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -233,6 +235,7 @@ function eff(s){
 }
 const idOf = s => eff(s).id;
 const playable = l => l.songs.filter(s => idOf(s) && !excluded.has(idOf(s)));
+try{ localStorage.removeItem("pp_years"); }catch(e){}
 function parseYT(v){
   v = (v||"").trim();
   const m = v.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([A-Za-z0-9_-]{11})/) || v.match(/^([A-Za-z0-9_-]{11})$/);
@@ -381,6 +384,7 @@ function setUI(s){
   $("resumeBtn").hidden = s!=="stopped";
   $("resumeBtn").textContent = "Nastavi pjesmu";
   $("award").hidden = s!=="revealed";
+  $("banBtn").hidden = s!=="revealed";
   $("answer").hidden = s!=="revealed";
   $("cover").classList.toggle("gone", s==="revealed");
   $("cover").classList.toggle("spin", s==="playing");
@@ -430,6 +434,10 @@ $("resumeBtn").onclick = () => {
 $("revealBtn").onclick = revealAnswer;
 $("giveA").onclick = () => award("a");
 $("giveB").onclick = () => award("b");
+$("banBtn").onclick = () => {          // pjesmu koju nitko ne zna trajno isključi na ovom mobitelu
+  if (current){ excluded.add(current.id); store.set("pp_excluded",[...excluded]); }
+  award(null);
+};
 $("skipBtn").onclick = () => state==="revealed" ? award(null) : (current ? nextSong() : null);
 
 function beginGame(fresh){
