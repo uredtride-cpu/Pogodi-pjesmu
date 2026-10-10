@@ -182,7 +182,8 @@ h1 span{color:var(--buzz)}
 const SRC_UK = "Music Week / OCC: Top 20 najprodavanijih singlova 90-ih (UK)";
 const SRC_US = "Billboard: Top 20 Hot 100 hitova 90-ih (US)";
 const SRC_GOAT = "Billboard: Greatest of All Time Hot 100 (2021)";
-const SRC_RE = "Rock Express: Top 100 YU rock pjesama";
+const SRC_VH1 = "VH1: 100 Greatest Hard Rock Songs (2009)";
+const SRC_RE ="Rock Express: Top 100 YU rock pjesama";
 const LISTS = {
   "90s": { name: "Hitovi 90-ih", note: "UK + US ljestvice desetljeća", songs: [
     {a:"Bryan Adams", t:"(Everything I Do) I Do It for You", y:1991, id:"Y0pdQU87dc8", s:SRC_UK, ch:"Bryan Adams"},
@@ -261,6 +262,50 @@ const LISTS = {
     {a:"Michael Jackson", t:"Billie Jean", y:1983, id:"Zi_XLOBDo_Y", s:SRC_GOAT+" #95", ch:"michaeljacksonVEVO"},
     {a:"Post Malone ft. 21 Savage", t:"rockstar", y:2017, id:"UceaB4D0jpo", s:SRC_GOAT+" #97", ch:"PostMaloneVEVO"},
     {a:"Coolio ft. L.V.", t:"Gangsta's Paradise", y:1995, id:"fPO76Jlnz6c", s:SRC_GOAT+" #98", ch:"Tommy Boy"}
+  ]},
+  "rock": { name: "Rock i metal", note: "VH1 100 Greatest Hard Rock Songs", songs: [
+    {a:"Guns N' Roses", t:"Welcome to the Jungle", y:1987, id:"o1tj2zJ2Wvg", s:SRC_VH1+" #1", ch:"GunsNRosesVEVO"},
+    {a:"AC/DC", t:"Back in Black", y:1980, id:"pAgnJDJN4VA", s:SRC_VH1+" #2", ch:"acdcVEVO"},
+    {a:"Led Zeppelin", t:"Whole Lotta Love", y:1969, id:"HQmmM_qwG4k", s:SRC_VH1+" #3", ch:"Led Zeppelin"},
+    {a:"Black Sabbath", t:"Paranoid", y:1970, id:"0qanF-91aJo", s:SRC_VH1+" #4", ch:"Black Sabbath"},
+    {a:"Metallica", t:"Enter Sandman", y:1991, id:"CD-E-LDc384", s:SRC_VH1+" #5", ch:"Metallica"},
+    {a:"The Who", t:"Won't Get Fooled Again", y:1971, s:SRC_VH1+" #6"},
+    {a:"Nirvana", t:"Smells Like Teen Spirit", y:1991, id:"hTWKbfoikeg", s:SRC_VH1+" #7", ch:"NirvanaVEVO"},
+    {a:"Aerosmith", t:"Walk This Way", y:1975, s:SRC_VH1+" #8"},
+    {a:"Motörhead", t:"Ace of Spades", y:1980, id:"3mbvWn1EY6g", s:SRC_VH1+" #10", ch:"Motörhead Official"},
+    {a:"Deep Purple", t:"Smoke on the Water", y:1972, s:SRC_VH1+" #11"},
+    {a:"Judas Priest", t:"Breaking the Law", y:1980, id:"L397TWLwrUU", s:SRC_VH1+" #12", ch:"JudasPriestVEVO"},
+    {a:"Def Leppard", t:"Photograph", y:1983, s:SRC_VH1+" #13"},
+    {a:"Iron Maiden", t:"Run to the Hills", y:1982, id:"86URGgqONvA", s:SRC_VH1+" #14", ch:"Iron Maiden"},
+    {a:"Kiss", t:"Rock and Roll All Nite", y:1975, s:SRC_VH1+" #16"},
+    {a:"Scorpions", t:"Rock You Like a Hurricane", y:1984, s:SRC_VH1+" #18"},
+    {a:"Rush", t:"Tom Sawyer", y:1981, id:"auLBLk4ibAk", s:SRC_VH1+" #19", ch:"RushVEVO"},
+    {a:"Bon Jovi", t:"You Give Love a Bad Name", y:1986, id:"KrZHPOeOxQQ", s:SRC_VH1+" #20", ch:"BonJoviVEVO"},
+    {a:"Led Zeppelin", t:"Kashmir", y:1975, s:SRC_VH1+" #21"},
+    {a:"Jimi Hendrix Experience", t:"Hey Joe", y:1966, s:SRC_VH1+" #22"},
+    {a:"Ozzy Osbourne", t:"Crazy Train", y:1980, id:"tMDFv5m18Pw", s:SRC_VH1+" #23", ch:"OzzyOsbourneVEVO"},
+    {a:"Ramones", t:"Blitzkrieg Bop", y:1976, s:SRC_VH1+" #25"},
+    {a:"Lynyrd Skynyrd", t:"Free Bird", y:1973, s:SRC_VH1+" #26"},
+    {a:"Foo Fighters", t:"Everlong", y:1997, id:"eBG7P-K-r1Y", s:SRC_VH1+" #28", ch:"foofightersVEVO"},
+    {a:"Pearl Jam", t:"Even Flow", y:1991, id:"CxKWTzr-k6s", s:SRC_VH1+" #30", ch:"PearljamVEVO"},
+    {a:"Green Day", t:"Basket Case", y:1994, id:"NUTGr5t3MoY", s:SRC_VH1+" #33", ch:"Green Day"},
+    {a:"Boston", t:"More Than a Feeling", y:1976, s:SRC_VH1+" #39"},
+    {a:"The Clash", t:"Should I Stay or Should I Go", y:1982, id:"BN1WwnEDWAM", s:SRC_VH1+" #42", ch:"theclashVEVO"},
+    {a:"Cream", t:"Sunshine of Your Love", y:1967, s:SRC_VH1+" #44"},
+    {a:"Korn", t:"Freak on a Leash", y:1998, id:"jRGrNDV2mKc", s:SRC_VH1+" #48", ch:"KornVEVO"},
+    {a:"Red Hot Chili Peppers", t:"Give It Away", y:1991, id:"Mr_uHJPUlO8", s:SRC_VH1+" #50", ch:"Red Hot Chili Peppers"},
+    {a:"Steppenwolf", t:"Born to Be Wild", y:1968, s:SRC_VH1+" #53"},
+    {a:"Faith No More", t:"Epic", y:1989, s:SRC_VH1+" #54"},
+    {a:"Blue Öyster Cult", t:"(Don't Fear) The Reaper", y:1976, s:SRC_VH1+" #55"},
+    {a:"The Kinks", t:"You Really Got Me", y:1964, s:SRC_VH1+" #57"},
+    {a:"Survivor", t:"Eye of the Tiger", y:1982, id:"btPJPFnesV4", s:SRC_VH1+" #63", ch:"SurvivorVEVO"},
+    {a:"Europe", t:"The Final Countdown", y:1986, id:"9jK-NcRmVcw", s:SRC_VH1+" #66", ch:"EuropeVEVO"},
+    {a:"Living Colour", t:"Cult of Personality", y:1988, s:SRC_VH1+" #69"},
+    {a:"The White Stripes", t:"Seven Nation Army", y:2003, id:"0J2QdDbelmY", s:SRC_VH1+" #75", ch:"The White Stripes"},
+    {a:"Soundgarden", t:"Black Hole Sun", y:1994, id:"3mbBbFH9fAg", s:SRC_VH1+" #77", ch:"SoundgardenVEVO"},
+    {a:"Journey", t:"Any Way You Want It", y:1980, id:"atxUuldUcfI", s:SRC_VH1+" #80", ch:"journeyVEVO"},
+    {a:"Evanescence", t:"Bring Me to Life", y:2003, id:"3YxaaGgTQYM", s:SRC_VH1+" #83", ch:"EvanescenceVEVO"},
+    {a:"Kansas", t:"Carry On Wayward Son", y:1976, id:"2X_2IdybTV0", s:SRC_VH1+" #96", ch:"kansasVEVO"}
   ]},
   "novival": { name: "Novi val (HR)", note: "Rock Express Top 100 YU rocka", songs: [
     {a:"Azra", t:"A šta da radim", y:1979, s:SRC_RE+" #7"},
