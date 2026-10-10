@@ -380,6 +380,52 @@ const FOUND = {
   "I Heard It Through the Grapevine":{id:"hajBdDM2qdg",ch:"Luke Gibbons",v:"fan upload"}
 };
 LISTS.top100.songs.forEach(s => { if (!s.id && FOUND[s.t]) Object.assign(s, FOUND[s.t]); });
+/* Pop do 2000: Billboard top 20 po desetljeću (60-e–90-e) + UK top 20 90-ih + Billboard svih vremena (pre-2000) */
+{
+  const B60="Billboard: Top 20 Hot 100 hitova 60-ih", B70="Billboard: Top 20 Hot 100 hitova 70-ih", B80="Billboard: Top 20 Hot 100 hitova 80-ih";
+  const raw = [
+    ["Chubby Checker","The Twist",1960,B60],["The Beatles","Hey Jude",1968,B60],["Percy Faith","Theme from A Summer Place",1960,B60],
+    ["Bobby Lewis","Tossin' and Turnin'",1961,B60],["The Beatles","I Want to Hold Your Hand",1964,B60],["The Monkees","I'm a Believer",1966,B60],
+    ["The 5th Dimension","Aquarius/Let the Sunshine In",1969,B60],["The Archies","Sugar, Sugar",1969,B60],["Marvin Gaye","I Heard It Through the Grapevine",1968,B60],
+    ["Elvis Presley","Are You Lonesome Tonight?",1960,B60],["Elvis Presley","It's Now or Never",1960,B60],["Ray Charles","I Can't Stop Loving You",1962,B60],
+    ["Brenda Lee","I'm Sorry",1960,B60],["Paul Mauriat","Love Is Blue (L'amour est bleu)",1968,B60],["Louis Armstrong","Hello, Dolly!",1964,B60],
+    ["The Four Seasons","Big Girls Don't Cry",1962,B60],["Jimmy Gilmer & the Fireballs","Sugar Shack",1963,B60],["The Rolling Stones","Honky Tonk Women",1969,B60],
+    ["Otis Redding","(Sittin' On) The Dock of the Bay",1968,B60],["Jimmy Dean","Big Bad John",1961,B60],
+    ["Debby Boone","You Light Up My Life",1977,B70],["Rod Stewart","Tonight's the Night (Gonna Be Alright)",1976,B70],["Chic","Le Freak",1978,B70],
+    ["Bee Gees","How Deep Is Your Love",1977,B70],["Andy Gibb","I Just Want to Be Your Everything",1977,B70],["Wings","Silly Love Songs",1976,B70],
+    ["Marvin Gaye","Let's Get It On",1973,B70],["Bee Gees","Night Fever",1978,B70],["Dawn ft. Tony Orlando","Tie a Yellow Ribbon Round the Ole Oak Tree",1973,B70],
+    ["Andy Gibb","Shadow Dancing",1978,B70],["Bee Gees","Stayin' Alive",1977,B70],["Donna Summer","Hot Stuff",1979,B70],
+    ["Carly Simon","You're So Vain",1972,B70],["Wild Cherry","Play That Funky Music",1976,B70],["The Knack","My Sharona",1979,B70],
+    ["Roberta Flack","Killing Me Softly with His Song",1973,B70],["The Emotions","Best of My Love",1977,B70],["Barbra Streisand","The Way We Were",1974,B70],
+    ["Walter Murphy","A Fifth of Beethoven",1976,B70],["Gloria Gaynor","I Will Survive",1979,B70],
+    ["Olivia Newton-John","Physical",1981,B80],["Kim Carnes","Bette Davis Eyes",1981,B80],["Diana Ross & Lionel Richie","Endless Love",1981,B80],
+    ["Survivor","Eye of the Tiger",1982,B80],["The Police","Every Breath You Take",1983,B80],["Irene Cara","Flashdance... What a Feeling",1983,B80],
+    ["Queen","Another One Bites the Dust",1980,B80],["Paul McCartney & Michael Jackson","Say Say Say",1983,B80],["Blondie","Call Me",1980,B80],
+    ["Kenny Rogers","Lady",1980,B80],["The J. Geils Band","Centerfold",1981,B80],["John Lennon","(Just Like) Starting Over",1980,B80],
+    ["Joan Jett & the Blackhearts","I Love Rock 'n' Roll",1982,B80],["Paul McCartney & Stevie Wonder","Ebony and Ivory",1982,B80],
+    ["Dionne Warwick & Friends","That's What Friends Are For",1985,B80],["Diana Ross","Upside Down",1980,B80],["Steve Miller Band","Abracadabra",1982,B80],
+    ["Michael Jackson","Billie Jean",1983,B80],["Lionel Richie","Say You, Say Me",1985,B80],["Lionel Richie","All Night Long (All Night)",1983,B80],
+    ["LeAnn Rimes","How Do I Live",1997,SRC_US],["Jewel","Foolish Games",1997,SRC_US],["Next","Too Close",1998,SRC_US],
+    ["Elton John","Candle in the Wind 1997",1997,SRC_US],["Brandy & Monica","The Boy Is Mine",1998,SRC_US],["Stevie B","Because I Love You (The Postman Song)",1990,SRC_US],
+    ["Tag Team","Whoomp! (There It Is)",1993,SRC_US],["Paula Abdul","Rush Rush",1991,SRC_US],
+    ["Robson & Jerome","Unchained Melody",1995,SRC_UK],["Wet Wet Wet","Love Is All Around",1994,SRC_UK],["All Saints","Never Ever",1997,SRC_UK],
+    ["Céline Dion","Think Twice",1994,SRC_UK],["Steps","Tragedy",1998,SRC_UK],["Babylon Zoo","Spaceman",1996,SRC_UK],
+    ["Run-DMC vs Jason Nevins","It's Like That",1998,SRC_UK],
+    ["Bobby Darin","Mack the Knife",1959,SRC_GOAT+" #4"],["Johnny Horton","The Battle of New Orleans",1959,SRC_GOAT+" #42"],
+    ["Tommy Edwards","It's All in the Game",1958,SRC_GOAT+" #53"],["Santana ft. Rob Thomas","Smooth",1999,SRC_GOAT+" #3"]
+  ];
+  const n = x => (x||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const first = x => n(x).split(" ").filter(w => w!=="the")[0];
+  const pool = Object.values(LISTS).flatMap(l => l.songs);
+  const songs = raw.map(([a,t,y,s]) => {
+    const known = pool.find(p => p.id && n(p.t)===n(t) && first(p.a)===first(a));
+    return known ? {a,t,y,s,id:known.id,ch:known.ch,v:known.v} : {a,t,y,s};
+  });
+  // svi hitovi 90-ih s već provjerenim linkom
+  for (const p of LISTS["90s"].songs) if (!songs.some(x => x.id===p.id)) songs.push({...p});
+  songs.sort((x,y) => x.y - y.y);
+  LISTS.pop = { name: "Pop do 2000", note: "Billboard + UK, 1958–1999", songs };
+}
 LISTS.top100.songs.sort((x,y) => +x.s.split("#")[1] - +y.s.split("#")[1]);
 
 /* ---------- STANJE ---------- */
