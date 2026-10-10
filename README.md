@@ -15,20 +15,22 @@ Igra: https://uredtride-cpu.github.io/Pogodi-pjesmu/
 
 Ugrađeni linkovi su provjereni preko YouTube oEmbed servisa (naslov + kanal). Prednost imaju službeni kanali i studijske verzije. Live ili fan verzija je označena i koristi se samo kad službene nema.
 
-## YouTube API ključ (za automatsko traženje linkova)
+## Automatsko održavanje linkova (GitHub Actions)
 
-Ključ se upisuje u ekranu **Pregled pjesama** i sprema **samo u pregledniku na tvom mobitelu** (localStorage). Nikad nije u ovom repozitoriju.
+Mobitel ne treba nikakav ključ. Linkove održava posao **Popuni linkove** (`.github/workflows/fill-links.yml`, skripta `tools/fill-links.mjs`):
 
-1. Otvori https://console.cloud.google.com/ i prijavi se Google računom.
-2. Gore lijevo **Select a project → New project**, ime npr. `pogodi-pjesmu`, **Create**.
-3. **APIs & Services → Library**, potraži **YouTube Data API v3** i stisni **Enable**.
-4. **APIs & Services → Credentials → Create credentials → API key**. Kopiraj ključ (počinje s `AIza`).
-5. Na tom ključu stisni **Edit** i ograniči ga:
-   - **Application restrictions → Websites**, dodaj `https://uredtride-cpu.github.io/*`
-   - **API restrictions → Restrict key → YouTube Data API v3**
-   - **Save**. Ograničenja se primijene za par minuta.
-6. U igri: **Pregled pjesama** → zalijepi ključ → **Spremi** → **Automatski pronađi linkove**.
+- pokreće se kad se promijeni `data.js`, svaki dan ujutro i ručno (Actions → Popuni linkove → Run workflow),
+- provjerava svaki video: postoji li još, je li javan, smije li se ugraditi u igru i **smije li se puštati u Hrvatskoj**,
+- za pjesme bez ispravnog videa traži zamjenu (službeni "Topic"/VEVO kanal ima prednost, karaoke/cover/remix se odbacuju, live samo ako nema drugog),
+- rezultat sprema u `links.json`, koji igra učita pri pokretanju.
 
-Kvota: jedna pretraga troši 100 od besplatnih 10.000 jedinica dnevno, dakle oko 100 pjesama dnevno. Ako kvota ponestane, igra pamti dokle je stigla pa sutra nastavlja.
+Redoslijed u igri: link koji si ručno zalijepio na mobitelu > link iz `links.json` > ugrađeni link iz `data.js`.
 
-Zašto ograničenja u koraku 5: ključ se šalje iz preglednika pa ga netko vješt može vidjeti. Ograničen na ovu stranicu i samo YouTube API, beskoristan je drugdje.
+### Jednokratno postavljanje
+
+1. **API ključ**: https://console.cloud.google.com/ → novi projekt → APIs & Services → Library → **YouTube Data API v3** → Enable → Credentials → Create credentials → **API key**.
+   Na ključu: **Application restrictions → None** (poziva ga GitHub server, ne preglednik) i **API restrictions → Restrict key → YouTube Data API v3**. Save.
+2. **Tajna na GitHubu**: repozitorij → **Settings → Secrets and variables → Actions → New repository secret**. Name: `YT_API_KEY`, Secret: zalijepi ključ. Add secret.
+3. **Prvo pokretanje**: kartica **Actions → Popuni linkove → Run workflow**. Za 1–2 minute u `links.json` stižu linkovi, a nakon objave i u igru.
+
+Kvota: provjera svih videa troši oko 5 jedinica, a jedna pretraga 100 (besplatno 10.000 dnevno). Skripta radi najviše 90 pretraga po pokretanju, a ostatak nastavlja sutradan.

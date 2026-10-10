@@ -1,0 +1,59 @@
+name: Popuni linkove
+
+# Pokreće se: kad se promijene popisi pjesama, svaki dan u 05:17 (po hrvatskom vremenu oko 7:17),
+# ili ručno iz kartice Actions → "Popuni linkove" → Run workflow.
+on:
+  push:
+    branches: [main]
+    paths: [data.js, tools/fill-links.mjs]
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # da smije spremiti links.json
+  pages: write      # da smije pokrenuti objavu stranice
+
+concurrency:
+  group: fill-links
+  cancel-in-progress: false
+
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Provjeri i popuni linkove
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: |
+          if [ -z "$YT_API_KEY" ]; then
+            echo "::error::Nedostaje tajna YT_API_KEY (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          node tools/fill-links.mjs
+
+      - name: Spremi links.json
+        id: commit
+        run: |
+          if git diff --quiet -- links.json && git ls-files --error-unmatch links.json >/dev/null 2>&1; then
+            echo "Nema promjena."; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          git config user.name "pogodi-pjesmu-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add links.json
+          git commit -m "Linkovi: automatsko ažuriranje"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Objavi stranicu
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Objava će krenuti sama."

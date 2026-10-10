@@ -1,7 +1,7 @@
 /* Service worker: uvijek prvo s mreže (da odmah dobiješ najnoviju verziju igre),
    a kopiju čuva samo kao rezervu kad nema interneta. YouTube i Google API se ne diraju. */
-const CACHE = "pogodi-pjesmu-v3";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const CACHE = "pogodi-pjesmu-v4";
+const SHELL = ["./", "./index.html", "./data.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
