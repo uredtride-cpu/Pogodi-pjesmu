@@ -49,12 +49,12 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 .round b{display:block;font:800 22px var(--display);color:var(--cream);letter-spacing:0}
 
 /* stage */
-.stage{position:relative;flex:1;min-height:220px;border-radius:20px;overflow:hidden;background:var(--panel)}
+.stage{position:relative;flex:1;min-height:120px;border-radius:20px;overflow:hidden;background:var(--panel)}
 #player,#player iframe{position:absolute;inset:0;width:100%;height:100%}
 .cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
   background:var(--panel);padding:20px;text-align:center;transition:opacity .35s}
 .cover.gone{opacity:0;pointer-events:none}
-.disc{width:min(46vw,170px);aspect-ratio:1;border-radius:50%;max-width:100%;
+.disc{height:min(46vw,170px,42%);aspect-ratio:1;border-radius:50%;flex-shrink:0;   /* ploča se smanjuje s prozorom */
   background:repeating-radial-gradient(circle at 50% 50%,#2c2552 0 2px,#1b1636 2px 5px);
   position:relative;box-shadow:0 0 0 2px var(--line)}
 .disc::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--buzz);box-shadow:inset 0 0 0 6px #b52a1d}
@@ -73,7 +73,8 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 
 /* controls */
 .controls{display:flex;flex-direction:column;gap:10px}
-.smash{height:min(30vh,170px);border-radius:24px;background:var(--buzz);color:#fff;font:800 clamp(40px,12vw,64px) var(--display);
+/* STOP: duplo veći (bio 170px); na manjim ekranima najviše 46% visine da ostane mjesta za ploču i donje gumbe */
+.smash{height:min(46vh,340px);margin-bottom:6px;border-radius:28px;background:var(--buzz);color:#fff;font:800 clamp(64px,22vw,120px) var(--display);
   box-shadow:0 8px 0 #9e2418;transition:transform .06s,box-shadow .06s;letter-spacing:.02em}
 .smash:active{transform:translateY(6px);box-shadow:0 2px 0 #9e2418}
 .big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:800 24px var(--display);box-shadow:0 6px 0 #c9bfa8}
@@ -242,7 +243,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-10 22:45";
+const APP_VERSION = "2026-10-11 11:10";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
