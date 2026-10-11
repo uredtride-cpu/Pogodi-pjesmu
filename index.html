@@ -266,7 +266,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-11 12:50";
+const APP_VERSION = "2026-10-11 17:30";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -556,6 +556,7 @@ window.onYouTubeIframeAPIReady = () => {
           }
           setUI("playing");
           setTimeout(() => { if (state==="playing") try{ player.unMute(); }catch(_){} }, 350);
+          if (DIAG) setTimeout(diagSample, 2500);
         }
         if (e.data===YT.PlayerState.UNSTARTED || e.data===YT.PlayerState.CUED) seeked = false;
       },
@@ -570,8 +571,44 @@ window.onYouTubeIframeAPIReady = () => {
     }
   });
 };
+/* ---------- DIJAGNOSTIKA GLASNOĆE: igru otvori s ?dijagnoza na kraju adrese ----------
+   Za svaku pjesmu ispiše što YouTube player otkriva o glasnoći (tražimo polje relative_loudness).
+   Ništa ne mijenja u igri; služi samo da provjerimo može li se glasnoća izjednačiti automatski. */
+const DIAG = new URLSearchParams(location.search).has("dijagnoza");
+const diagRows = []; let diagN = 0;
+function diagRender(){
+  let box = $("diag");
+  if (!box){
+    box = document.createElement("div"); box.id = "diag";
+    box.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:50;max-height:32vh;overflow:auto;background:rgba(0,0,0,.88);"
+      + "color:#9f9;font:11px/1.35 ui-monospace,monospace;padding:6px 8px;white-space:pre-wrap;word-break:break-all";
+    box.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:4px"><button id="diagCopy" style="background:#333;color:#fff;padding:4px 8px;border-radius:6px">Kopiraj</button>`
+      + `<button id="diagHide" style="background:#333;color:#fff;padding:4px 8px;border-radius:6px">Sakrij</button></div><div id="diagText"></div>`;
+    document.body.appendChild(box);
+    $("diagCopy").onclick = () => navigator.clipboard?.writeText(diagRows.join("\n")).then(() => $("diagCopy").textContent = "Kopirano ✓", () => {});
+    $("diagHide").onclick = () => box.remove();
+  }
+  $("diagText").textContent = diagRows.join("\n");
+}
+function diagSample(){
+  if (!DIAG || !player || !current) return;
+  const call = n => { try { return typeof player[n]==="function" ? player[n]() : "(nema funkcije)"; } catch(e){ return "GREŠKA " + e.message; } };
+  const loud = txt => { const f = {}; String(txt||"").replace(/"?([\w.]*(?:loud|vvol)[\w.]*)"?\s*[:=]\s*"?([^",}\s]*)/gi, (_, k, v) => (f[k] = v)); return f; };
+  if (!diagRows.length){
+    const fns = []; for (const k in player) if (typeof player[k]==="function" && /^(get|is)/.test(k)) fns.push(k);
+    diagRows.push(`verzija ${APP_VERSION} | ${navigator.userAgent.slice(0,60)}`, `funkcije: ${fns.join(",")}`, `playerInfo: ${Object.keys(player.playerInfo||{}).join(",")}`);
+  }
+  const dt = call("getDebugText"), vd = call("getVideoData");
+  const found = {...loud(JSON.stringify(vd)), ...loud(JSON.stringify(player.playerInfo||{})), ...loud(dt)};
+  diagRows.push(`${++diagN}. ${current.a} – ${current.t} [${current.id}] vol=${call("getVolume")} | `
+    + (Object.keys(found).length ? Object.entries(found).map(([k,v]) => `${k}=${v}`).join(" ") : "NEMA podatka o glasnoći")
+    + ` | getDebugText: ${typeof dt}${typeof dt==="string" ? ` (${dt.length} zn.)` : ""}`);
+  if (diagN === 1 && typeof dt==="string") diagRows.push("debugText početak: " + dt.slice(0, 600));
+  diagRender();
+}
+
 renderPick();
-$("verLine").textContent = "Verzija " + APP_VERSION;
+$("verLine").textContent = "Verzija " + APP_VERSION + (DIAG ? " · DIJAGNOZA" : "");
 
 /* ---------- INSTALACIJA (ikona na početnom zaslonu) ---------- */
 /* Nova verzija igre: service worker je preuzme i stranica se sama osvježi, ali nikad usred igre */
