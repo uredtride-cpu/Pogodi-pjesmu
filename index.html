@@ -49,7 +49,7 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 .round b{display:block;font:800 22px var(--display);color:var(--cream);letter-spacing:0}
 
 /* stage */
-.stage{position:relative;flex:1;min-height:120px;border-radius:20px;overflow:hidden;background:var(--panel)}
+.stage{position:relative;flex:1;min-height:200px;border-radius:20px;overflow:hidden;background:var(--panel)}
 #player,#player iframe{position:absolute;inset:0;width:100%;height:100%}
 .cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
   background:var(--panel);padding:20px;text-align:center;transition:opacity .35s}
@@ -73,10 +73,17 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 
 /* controls */
 .controls{display:flex;flex-direction:column;gap:10px}
-/* STOP: duplo veći (bio 170px); na manjim ekranima najviše 46% visine da ostane mjesta za ploču i donje gumbe */
-.smash{height:min(46vh,340px);margin-bottom:6px;border-radius:28px;background:var(--buzz);color:#fff;font:800 clamp(64px,22vw,120px) var(--display);
-  box-shadow:0 8px 0 #9e2418;transition:transform .06s,box-shadow .06s;letter-spacing:.02em}
-.smash:active{transform:translateY(6px);box-shadow:0 2px 0 #9e2418}
+/* Ekran igre kao mreža: rezultat / prozor s pjesmom / gumbi.
+   STOP leži PREKO prozora s pjesmom (ista ćelija mreže), pa dok pjesma svira pokriva skoro cijeli ekran,
+   a skriveni YouTube player ispod ostaje pune veličine (YouTube traži barem 200×200 px). */
+#gameScreen{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+#gameScreen .score{grid-row:1} #gameScreen .stage,#stopBtn{grid-row:2;grid-column:1} #gameScreen .controls{grid-row:3}
+.smash{position:relative;z-index:3;border-radius:20px;background:var(--buzz);color:#fff;   /* isti oblik kao prozor ispod, da ništa ne viri */
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  font:800 clamp(80px,28vw,160px)/1 var(--display);letter-spacing:.02em;
+  box-shadow:inset 0 -10px 0 #9e2418;transition:transform .06s,box-shadow .06s}
+.smash .sub{font:600 17px/1.3 var(--body);letter-spacing:0;opacity:.85;max-width:26ch;text-wrap:balance}
+.smash:active{transform:scale(.985);box-shadow:inset 0 -4px 0 #9e2418}
 .big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:800 24px var(--display);box-shadow:0 6px 0 #c9bfa8}
 .big:active{transform:translateY(4px);box-shadow:0 2px 0 #c9bfa8}
 .award{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -186,9 +193,10 @@ h1 span{color:var(--buzz)}
       <!-- namjerno gore, daleko od gumba za bodove, da ga nitko ne pritisne slučajno -->
       <button class="banTop" id="banBtn" type="button" hidden>Izbaci zauvijek</button>
     </div>
+    <!-- STOP prekriva prozor s pjesmom dok svira -->
+    <button class="smash" id="stopBtn" type="button" aria-label="STOP"><span>STOP</span><span class="sub" id="stopSub"></span></button>
 
     <div class="controls">
-      <button class="smash" id="stopBtn" type="button">STOP</button>
       <button class="big" id="revealBtn" type="button" hidden>Prikaži odgovor</button>
       <div class="award" id="award" hidden>
         <button class="a" id="giveA" type="button">+1 Tim 1</button>
@@ -243,7 +251,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-11 11:25";
+const APP_VERSION = "2026-10-11 11:40";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -429,6 +437,7 @@ function setUI(s){
   const txt = {loading:["Učitavam pjesmu…",""], playing:["Svira!","Tko prvi zna, udara STOP."],
     stopped:["Stop!","Odgovor naglas. Pa Prikaži odgovor."], empty:["Sve pjesme su odigrane","Izbornik → Kreni → Nova igra, ili uključi još lista."]}[s];
   if (txt){ $("status").textContent=txt[0]; $("hint").textContent=txt[1]; }
+  $("stopSub").textContent = s==="loading" ? "Učitavam pjesmu…" : "Tko prvi zna, udara!";   // prozor je ispod STOP-a, pa stanje piše na gumbu
   $("skipBtn").textContent = s==="revealed" ? "Nitko nije pogodio" : "Preskoči";
 }
 
@@ -441,6 +450,7 @@ function nextSong(){
   loadTimer = setTimeout(() => {             // Android ponekad blokira automatsko pokretanje
     if (state!=="loading") return;
     $("hint").textContent = "Pjesma nije krenula sama. Dodirni Pokreni pjesmu.";
+    $("stopSub").textContent = "Pjesma ne kreće sama: dodirni Pokreni pjesmu dolje";
     $("resumeBtn").hidden = false; $("resumeBtn").textContent = "Pokreni pjesmu";
   }, 4000);
 }
