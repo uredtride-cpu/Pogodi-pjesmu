@@ -81,6 +81,16 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
    a skriveni YouTube player ispod ostaje pune veličine (YouTube traži barem 200×200 px). */
 #gameScreen{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
 #gameScreen .score{grid-row:1} #gameScreen .stage,#stopBtn{grid-row:2;grid-column:1} #gameScreen .controls{grid-row:3}
+/* Prikazan odgovor: tekst odmah ispod "Izbaci zauvijek", gumbi za bodove na sredini ekrana, Nitko nije pogodio / Izbornik na dnu.
+   Prozor s odgovorom je visok do sredine ekrana (169px = vrh ekrana s rezultatom + razmak + pola gumba za bod);
+   duži naziv ga produži najviše do 62% visine ekrana (bodovi se malo spuste), a tek kad ni to ne stane, slova se smanje. */
+#gameScreen.revealed{grid-template-rows:auto auto minmax(0,1fr)}
+#gameScreen.revealed .answer{position:relative;inset:auto;justify-content:flex-start;
+  min-height:max(200px,calc(50vh - 169px - env(safe-area-inset-top,0px)));min-height:max(200px,calc(50dvh - 169px - env(safe-area-inset-top,0px)));
+  max-height:max(200px,calc(62vh - 169px - env(safe-area-inset-top,0px)));max-height:max(200px,calc(62dvh - 169px - env(safe-area-inset-top,0px)));
+  gap:10px;padding-bottom:14px}
+#gameScreen.revealed .controls{display:flex;flex-direction:column}
+#gameScreen.revealed .controls .row{margin-top:auto}
 .smash{position:relative;z-index:3;border-radius:20px;background:var(--buzz);color:#fff;   /* isti oblik kao prozor ispod, da ništa ne viri */
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   font:800 clamp(80px,28vw,160px)/1 var(--display);letter-spacing:.02em;
@@ -90,11 +100,12 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 .big{height:72px;border-radius:18px;background:var(--cream);color:var(--night);font:800 24px var(--display);box-shadow:0 6px 0 #c9bfa8}
 .big:active{transform:translateY(4px);box-shadow:0 2px 0 #c9bfa8}
 .award{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.award button{height:72px;border-radius:18px;font:800 20px var(--display);color:var(--night)}
+.award button{height:94px;border-radius:20px;font:800 26px/1.1 var(--display);color:var(--night)}   /* +30% (bilo 72px / 20px) */
 .award .a{background:var(--teamA)} .award .b{background:var(--teamB)}
 .row{display:flex;gap:10px}
 .row .ghost{flex:1}   /* samo u retku dijele širinu; inače zadrže punu visinu */
 .ghost{flex:none;height:46px;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 2px var(--line);color:var(--muted);font-weight:600}
+.controls .row .ghost{height:69px;border-radius:18px;font-size:20px;line-height:1.15;padding:0 10px}   /* donji gumbi u igri +50% (bilo 46px / 16px) */
 
 /* start + list screens */
 .screen{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
@@ -254,7 +265,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-11 12:25";
+const APP_VERSION = "2026-10-11 12:45";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -436,6 +447,7 @@ function setUI(s){
   $("banBtn").hidden = s!=="revealed";
   $("answer").hidden = s!=="revealed";
   $("cover").classList.toggle("gone", s==="revealed");
+  $("gameScreen").classList.toggle("revealed", s==="revealed");
   $("cover").classList.toggle("spin", s==="playing");
   const txt = {loading:["Učitavam pjesmu…",""], playing:["Svira!","Tko prvi zna, udara STOP."],
     stopped:["Stop!","Odgovor naglas. Pa Prikaži odgovor."], empty:["Sve pjesme su odigrane","Izbornik → Kreni → Nova igra, ili uključi još lista."]}[s];
