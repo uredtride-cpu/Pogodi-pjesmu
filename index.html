@@ -64,10 +64,13 @@ button:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
 .status{font:800 18px var(--body);text-wrap:balance}
 .hint{color:var(--muted);font-size:14px;max-width:32ch;text-wrap:balance}
 
-.answer{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(transparent,rgba(10,8,22,.92) 35%)}
-.answer .artist{font:600 15px var(--body);color:var(--muted)}
-.answer .title{font:800 26px/1.1 var(--display);text-wrap:balance}
-.answer .meta{font-size:12px;color:var(--muted);margin-top:4px}
+/* Odgovor preko cijelog prozora, velikim slovima da ga vidi cijela soba.
+   --k je faktor smanjenja: fitAnswer() ga spušta dok predugi naziv ne stane. */
+.answer{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding:68px 18px 22px;text-align:center;background:var(--panel);overflow:hidden}
+.answer .artist{font:700 calc(var(--k,1)*clamp(32px,10.5vw,60px))/1.12 var(--display);color:var(--cream);opacity:.78;text-wrap:balance;max-width:100%}
+.answer .title{font:800 calc(var(--k,1)*clamp(44px,15vw,88px))/1.05 var(--display);color:var(--cream);text-wrap:balance;max-width:100%}
+.answer .meta{font:600 calc(var(--k,1)*20px) var(--body);color:var(--muted)}
 .banTop{position:absolute;top:12px;right:12px;z-index:2;height:44px;padding:0 16px;border-radius:22px;
   background:rgba(10,8,22,.8);box-shadow:inset 0 0 0 2px var(--line);color:var(--cream);font:600 15px var(--body)}
 
@@ -251,7 +254,7 @@ let linkMeta = store.get("pp_linkmeta",{});
 
 /* Video koji YouTube odbije pustiti (obrisan / ugradnja zabranjena) ide u "blocked", ne u "excluded".
    Takva pjesma tada traži zamjenski link (automatska pretraga ili ručno), ne nestaje s popisa. */
-const APP_VERSION = "2026-10-11 11:40";
+const APP_VERSION = "2026-10-11 12:25";
 let blocked = store.get("pp_blocked",{});
 let server = {links: {}, blocked: {}};          // iz links.json (GitHub)
 const isBad = id => !id || blocked[id] || server.blocked[id];
@@ -458,7 +461,15 @@ function revealAnswer(){
   $("aArtist").textContent=current.a; $("aTitle").textContent=current.t;
   $("aMeta").textContent=[current.y, current.v, current.s].filter(Boolean).join(" · ");
   setUI("revealed");
+  fitAnswer();
 }
+/* Predugi naziv (npr. "When the Going Gets Tough, the Tough Get Going") smanjuj u koracima od 5% dok ne stane u prozor */
+function fitAnswer(){
+  const a = $("answer"), over = () => a.scrollHeight > a.clientHeight + 1 || [...a.children].some(c => c.scrollWidth > c.clientWidth + 1);
+  let k = 1; a.style.setProperty("--k", k);
+  while (k > 0.4 && over()){ k = +(k - 0.05).toFixed(2); a.style.setProperty("--k", k); }
+}
+window.addEventListener("resize", () => { if (state==="revealed") fitAnswer(); });
 function award(team){
   if(team) score[team]++;
   score.round++; saveScore(); nextSong();
