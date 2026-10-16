@@ -30,17 +30,21 @@ jobs:
           node-version: 20
 
       - name: Provjeri i popuni linkove
+        id: fill
         env:
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
         run: |
+          # Bez ključa samo preskoči (ne ruši run), da GitHub ne šalje mailove o neuspjehu.
           if [ -z "$YT_API_KEY" ]; then
-            echo "::error::Nedostaje tajna YT_API_KEY (Settings → Secrets and variables → Actions)."
-            exit 1
+            echo "::warning::Nedostaje tajna YT_API_KEY (Settings → Secrets and variables → Actions) – preskačem."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           node tools/fill-links.mjs
 
       - name: Spremi links.json
         id: commit
+        if: steps.fill.outputs.skipped != 'true'
         run: |
           if git diff --quiet -- links.json && git ls-files --error-unmatch links.json >/dev/null 2>&1; then
             echo "Nema promjena."; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
